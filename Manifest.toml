@@ -286,9 +286,9 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[deps.MbedTLS]]
 deps = ["Dates", "MbedTLS_jll", "MozillaCACerts_jll", "Random", "Sockets"]
-git-tree-sha1 = "6872f9594ff273da6d13c7c1a1545d5a8c7d0c1c"
+git-tree-sha1 = "03a9b9718f5682ecb107ac9f7308991db4ce395b"
 uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
-version = "1.1.6"
+version = "1.1.7"
 
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -452,7 +452,7 @@ version = "0.3.5"
 
 [[deps.Stripeline]]
 deps = ["AstroLib", "AstroTime", "BenchmarkTools", "CorrNoise", "Dates", "Documenter", "FITSIO", "Healpix", "LinearAlgebra", "MPI", "Printf", "Random", "RandomNumbers", "RecipesBase", "StaticArrays", "Statistics", "Test", "YAML"]
-git-tree-sha1 = "af7e713b69535e1b57e6413e991869c48a9d3f87"
+git-tree-sha1 = "0a6e9509b2f7a487621a44d61f02a345fe8ddb05"
 repo-rev = "prm"
 repo-url = "https://github.com/lspestrip/Stripeline.jl"
 uuid = "45029ab0-c194-11e8-0c82-65ed36a31fad"
