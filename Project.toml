@@ -1,0 +1,7 @@
+name = "PrmMaps"
+uuid = "fd40e84c-20b6-49bc-bda0-919ee04f3f0e"
+authors = ["Baratto Matteo <teo.baratto.97@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Stripeline = "45029ab0-c194-11e8-0c82-65ed36a31fad"
