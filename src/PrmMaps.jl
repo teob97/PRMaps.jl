@@ -28,11 +28,4 @@ function makeMap(cam_ang :: Sl.CameraAngles,
     map
 end
 
-# Importare .fits
-# Generare puntamenti
-# cilare sui puntamenti e trovare indici associati ai pixel che vedo
-# genero TOD
-# tod2map
-# plottare mappa
-
 end # module PrmMaps
