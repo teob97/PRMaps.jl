@@ -1,6 +1,6 @@
 import Stripeline as Sl
-using Healpix
 using PrmMaps
+using Healpix
 using Plots
 
 signal = readMapFromFITS("input_maps/map_40GHz.fits", 1, Float64)
@@ -23,8 +23,7 @@ telescope_ang = Sl.TelescopeAngles(
     )
 
 map_ideal = makeMap(cam_ang, nothing, signal, setup)
-map_with_error = makeErroredMap(cam_ang, telescope_ang, signal, setup)
 
-final_map = (map_with_error - map_ideal) / map_ideal
+map_plots = makeMapPlots(cam_ang, [telescope_ang], signal, map_ideal, setup)
 
-savefig(plot(final_map), "demo.png")
+savefig(map_plots[1], "examples/demo.png")

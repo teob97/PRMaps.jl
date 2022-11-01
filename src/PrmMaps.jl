@@ -3,7 +3,8 @@ module PrmMaps
 import Stripeline as Sl
 using Healpix, Plots
 export Setup
-export makeMap, makeMaps, makeMapPlots
+export makeMap, makeErroredMap, makeErroredMaps, makeMapPlots
+export getPixelIndex
 
 Base.@kwdef struct Setup
     τ_s = 0.0
