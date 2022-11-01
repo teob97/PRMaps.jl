@@ -47,7 +47,7 @@ function getPixelIndex(
     pixel_index
 end
 
-function makeMap(cam_ang :: Sl.CameraAngles, 
+function makeErroredMap(cam_ang :: Sl.CameraAngles, 
                  telescope_ang :: Sl.TelescopeAngles,
                  signal,
                  pixel_index_ideal,
@@ -101,7 +101,7 @@ function makeMaps(cam_ang :: Sl.CameraAngles,
                   signal,
                   pixel_index_ideal,
                   setup::Setup)
-    maps = [makeMap(cam_ang, tel, signal, pixel_index_ideal, setup) for tel in telescope_angles]
+    maps = [makeErroredMap(cam_ang, tel, signal, pixel_index_ideal, setup) for tel in telescope_angles]
     maps
 end
 
