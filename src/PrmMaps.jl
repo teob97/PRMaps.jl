@@ -87,16 +87,17 @@ function makeMap(cam_ang :: Sl.CameraAngles,
 end
 
 """
-    makeMaps(cam_ang :: Sl.CameraAngles, 
-             telescope_angles,
-             signal,
-             pixel_index_ideal,
-             setup::Setup
-            )
+    makeMaps(
+        cam_ang :: Sl.CameraAngles, 
+        telescope_angles,
+        signal,
+        pixel_index_ideal,
+        setup::Setup
+        )
 
 Generate a collection of Healpix maps.
 """
-function makeMaps(cam_ang :: Sl.CameraAngles, 
+function makeErroredMaps(cam_ang :: Sl.CameraAngles, 
                   telescope_angles,
                   signal,
                   pixel_index_ideal,
@@ -112,7 +113,7 @@ function makeMapPlots(cam_ang :: Sl.CameraAngles,
                       setup::Setup)
     
     pixel_index_ideal = getPixelIndex(cam_ang, nothing, signal, setup)
-    maps = makeMaps(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
+    maps = makeErroredMaps(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
     plots = [plot((map-map_ideal)/map_ideal) for map in maps]
     plots
 end
