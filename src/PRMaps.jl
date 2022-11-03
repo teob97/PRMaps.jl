@@ -69,6 +69,26 @@ function makeErroredMap(cam_ang :: Sl.CameraAngles,
     map
 end
 
+"""
+    makeErroredMaps(
+        cam_ang :: Sl.CameraAngles, 
+        telescope_angles,
+        signal,
+        pixel_index_ideal,
+        setup::Setup
+        )
+
+Generate a collection of Healpix maps.
+"""
+function makeErroredMap(cam_ang :: Sl.CameraAngles, 
+                  telescope_angles,
+                  signal,
+                  pixel_index_ideal,
+                  setup::Setup)
+    maps = [makeErroredMap(cam_ang, tel, signal, pixel_index_ideal, setup) for tel in telescope_angles]
+    maps
+end
+
 # Flavour to make ideal maps
 function makeMap(cam_ang :: Sl.CameraAngles, 
     telescope_ang :: Nothing,
@@ -87,26 +107,6 @@ function makeMap(cam_ang :: Sl.CameraAngles,
     map
 end
 
-"""
-    makeErroredMaps(
-        cam_ang :: Sl.CameraAngles, 
-        telescope_angles,
-        signal,
-        pixel_index_ideal,
-        setup::Setup
-        )
-
-Generate a collection of Healpix maps.
-"""
-function makeErroredMaps(cam_ang :: Sl.CameraAngles, 
-                  telescope_angles,
-                  signal,
-                  pixel_index_ideal,
-                  setup::Setup)
-    maps = [makeErroredMap(cam_ang, tel, signal, pixel_index_ideal, setup) for tel in telescope_angles]
-    maps
-end
-
 function makeMapPlots(cam_ang :: Sl.CameraAngles, 
                       telescope_angles :: Sl.TelescopeAngles,
                       signal,
@@ -114,7 +114,7 @@ function makeMapPlots(cam_ang :: Sl.CameraAngles,
                       setup::Setup)
     
     pixel_index_ideal = getPixelIndex(cam_ang, nothing, signal, setup)
-    map = makeErroredMaps(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
+    map = makeErroredMap(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
     plots = plot((map-map_ideal)/map_ideal)
     plots
 end
@@ -126,7 +126,7 @@ function makeMapPlots(cam_ang :: Sl.CameraAngles,
                       setup::Setup)
     
     pixel_index_ideal = getPixelIndex(cam_ang, nothing, signal, setup)
-    maps = makeErroredMaps(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
+    maps = makeErroredMap(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
     plots = [plot((map-map_ideal)/map_ideal) for map in maps]
     plots
 end

@@ -18,7 +18,7 @@ setup = Setup(
 cam_ang = Sl.CameraAngles()
 
 telescope_ang = Sl.TelescopeAngles(
-    omegaVAXang_rad = deg2rad(0.5), 
+    omegaVAXang_rad = deg2rad(0.6), 
     zVAXang_rad = deg2rad(0.5)
     )
 
@@ -26,4 +26,4 @@ map_ideal = makeMap(cam_ang, nothing, signal, setup)
 
 map_plots = makeMapPlots(cam_ang, telescope_ang, signal, map_ideal, setup)
 
-savefig(map_plots[1], "examples/demo.png")
+savefig(map_plots, "examples/demo.png")
