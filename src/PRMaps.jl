@@ -3,7 +3,7 @@ module PRMaps
 import Stripeline as Sl
 using Healpix, Plots
 export Setup
-export makeMap, makeErroredMap, makeMapPlots
+export makeIdealMap, makeErroredMap, makeMapPlots
 export getPixelIndex
 
 Base.@kwdef struct Setup
@@ -67,6 +67,24 @@ function getPixelIndex(
     pixel_index
 end
 
+"""
+    makeErroredMap(
+        cam_ang :: Sl.CameraAngles, 
+        telescope_angles,
+        signal :: Healpix.HealpixMap,
+        pixel_index_ideal :: Array{Int, 1},
+        setup :: Setup
+    )
+
+Generate a collection of Healpix maps using a telescope model that takes into account of
+the non idealities to generate the pointing direction. The observed values instead are
+calculated taking into account the ideal pointing directions. The result is a map affected
+by an error due to the non idealities of the system.
+
+This function comes into two flavours: telescope_ang could be both a single Sl.TelescopeAngles
+or a collection of them returning an Array of HealpixMap.
+
+"""
 function makeErroredMap(
     cam_ang :: Sl.CameraAngles, 
     telescope_ang :: Sl.TelescopeAngles,
@@ -89,17 +107,6 @@ function makeErroredMap(
     map
 end
 
-"""
-    makeErroredMap(
-        cam_ang :: Sl.CameraAngles, 
-        telescope_angles :: Vector{Stripeline.TelescopeAngles},
-        signal :: Healpix.HealpixMap,
-        pixel_index_ideal,
-        setup :: Setup
-    )
-
-Generate a collection of Healpix maps.
-"""
 function makeErroredMap(
     cam_ang :: Sl.CameraAngles, 
     telescope_angles :: Vector{Sl.TelescopeAngles},
@@ -113,7 +120,7 @@ function makeErroredMap(
 end
 
 # Flavour to make ideal maps
-function makeMap(
+function makeIdealMap(
     cam_ang :: Sl.CameraAngles, 
     telescope_ang :: Nothing,
     signal :: Healpix.HealpixMap,
@@ -142,7 +149,8 @@ function makeMapPlots(
     
     pixel_index_ideal = getPixelIndex(cam_ang, nothing, signal, setup)
     map = makeErroredMap(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
-    plot((map-map_ideal)/map_ideal)  
+    result = (map-map_ideal)/map_ideal
+    plot(result)
 end
 
 function makeMapPlots(
