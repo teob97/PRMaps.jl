@@ -3,7 +3,7 @@ module PRMaps
 import Stripeline as Sl
 using Healpix, Plots
 export Setup
-export makeMap, makeErroredMap, makeErroredMaps, makeMapPlots
+export makeMap, makeErroredMap, makeMapPlots
 export getPixelIndex
 
 Base.@kwdef struct Setup
@@ -48,12 +48,13 @@ function getPixelIndex(
     pixel_index
 end
 
-function makeErroredMap(cam_ang :: Sl.CameraAngles, 
-                 telescope_ang :: Sl.TelescopeAngles,
-                 signal,
-                 pixel_index_ideal,
-                 setup::Setup
-                 )
+function makeErroredMap(
+    cam_ang :: Sl.CameraAngles, 
+    telescope_ang :: Sl.TelescopeAngles,
+    signal,
+    pixel_index_ideal,
+    setup::Setup
+    )
     
     pixel_index = getPixelIndex(cam_ang, telescope_ang, signal, setup)
     
@@ -80,20 +81,25 @@ end
 
 Generate a collection of Healpix maps.
 """
-function makeErroredMap(cam_ang :: Sl.CameraAngles, 
-                  telescope_angles,
-                  signal,
-                  pixel_index_ideal,
-                  setup::Setup)
-    maps = [makeErroredMap(cam_ang, tel, signal, pixel_index_ideal, setup) for tel in telescope_angles]
-    maps
+function makeErroredMap(
+    cam_ang :: Sl.CameraAngles, 
+    telescope_angles,
+    signal,
+    pixel_index_ideal,
+    setup::Setup
+    )
+
+    [makeErroredMap(cam_ang, tel, signal, pixel_index_ideal, setup) for tel in telescope_angles]
+    
 end
 
 # Flavour to make ideal maps
-function makeMap(cam_ang :: Sl.CameraAngles, 
+function makeMap(
+    cam_ang :: Sl.CameraAngles, 
     telescope_ang :: Nothing,
     signal,
-    setup::Setup)
+    setup::Setup
+    )
 
     pixel_index = getPixelIndex(cam_ang, telescope_ang, signal, setup)
 
@@ -107,28 +113,30 @@ function makeMap(cam_ang :: Sl.CameraAngles,
     map
 end
 
-function makeMapPlots(cam_ang :: Sl.CameraAngles, 
-                      telescope_angles :: Sl.TelescopeAngles,
-                      signal,
-                      map_ideal,
-                      setup::Setup)
+function makeMapPlots(
+    cam_ang :: Sl.CameraAngles, 
+    telescope_angles :: Sl.TelescopeAngles,
+    signal,
+    map_ideal,
+    setup::Setup
+    )
     
     pixel_index_ideal = getPixelIndex(cam_ang, nothing, signal, setup)
     map = makeErroredMap(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
-    plots = plot((map-map_ideal)/map_ideal)
-    plots
+    plot((map-map_ideal)/map_ideal)  
 end
 
-function makeMapPlots(cam_ang :: Sl.CameraAngles, 
-                      telescope_angles,
-                      signal,
-                      map_ideal,
-                      setup::Setup)
+function makeMapPlots(
+    cam_ang :: Sl.CameraAngles, 
+    telescope_angles,
+    signal,
+    map_ideal,
+    setup::Setup
+    )
     
     pixel_index_ideal = getPixelIndex(cam_ang, nothing, signal, setup)
     maps = makeErroredMap(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
-    plots = [plot((map-map_ideal)/map_ideal) for map in maps]
-    plots
+    [plot((map-map_ideal)/map_ideal) for map in maps]
 end
 
 end # module PrmMaps
