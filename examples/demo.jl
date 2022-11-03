@@ -24,6 +24,6 @@ telescope_ang = Sl.TelescopeAngles(
 
 map_ideal = makeMap(cam_ang, nothing, signal, setup)
 
-map_plots = makeMapPlots(cam_ang, [telescope_ang], signal, map_ideal, setup)
+map_plots = makeMapPlots(cam_ang, telescope_ang, signal, map_ideal, setup)
 
 savefig(map_plots[1], "examples/demo.png")
