@@ -7,9 +7,9 @@ export makeMap, makeErroredMap, makeErroredMaps, makeMapPlots
 export getPixelIndex
 
 Base.@kwdef struct Setup
-    τ_s = 0.0
-    times
-    NSIDE :: Int = 0
+    τ_s :: Float64 = 0.0
+    times :: StepRangeLen
+    NSIDE :: Int32 = 0
 end
 
 function getPixelIndex(
