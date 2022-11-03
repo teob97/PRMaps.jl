@@ -22,7 +22,7 @@ telescope_ang = Sl.TelescopeAngles(
     )
 
 @info "Generate ideal map"
-map_ideal = makeMap(cam_ang, nothing, signal, setup)
+map_ideal = makeIdealMap(cam_ang, nothing, signal, setup)
 
 @info "Generate errored map"
 map_plots = makeMapPlots(cam_ang, telescope_ang, signal, map_ideal, setup)
