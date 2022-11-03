@@ -12,10 +12,29 @@ Base.@kwdef struct Setup
     NSIDE :: Int32 = 0
 end
 
+"""
+    getPixelIndex(
+        cam_ang :: Stripeline.CameraAngles,
+        telescope_ang :: Stripeline.TelescopeAngles,
+        signal :: Healpix.HealpixMap,
+        setup :: PRMaps.Setup
+    )
+
+This function return the indeces of the pixel seeing by the telescope given:
+
+    - `cam_ang :: Stripeline.CameraAngles` : encoding the boresight directions of the detector;
+    - `telescope_ang :: Stripeline.TelescopeAngles` :  encoding the non idealities angles of the telescope;
+    - `signal :: Healpix.HealpixMap` : the input map that the telescope is going to observe;
+    - `setup :: PRMaps.Setup` : encoding the information about period of observation and resolution.
+
+This function is provided in two flavours. The second one accepting `telescope_ang = nothing` is used to
+simulate the ideal case.
+
+"""
 function getPixelIndex(
     cam_ang :: Sl.CameraAngles,
     telescope_ang :: Sl.TelescopeAngles,
-    signal,
+    signal :: HealpixMap,
     setup :: Setup
     )
     
@@ -33,7 +52,7 @@ end
 function getPixelIndex(
     cam_ang :: Sl.CameraAngles,
     telescope_ang :: Nothing,
-    signal,
+    signal :: HealpixMap,
     setup :: Setup
     )
     
