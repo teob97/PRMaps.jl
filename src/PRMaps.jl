@@ -70,8 +70,8 @@ end
 function makeErroredMap(
     cam_ang :: Sl.CameraAngles, 
     telescope_ang :: Sl.TelescopeAngles,
-    signal,
-    pixel_index_ideal,
+    signal :: Healpix.HealpixMap,
+    pixel_index_ideal :: Array{Int, 1},
     setup::Setup
     )
     
@@ -90,22 +90,22 @@ function makeErroredMap(
 end
 
 """
-    makeErroredMaps(
+    makeErroredMap(
         cam_ang :: Sl.CameraAngles, 
-        telescope_angles,
-        signal,
+        telescope_angles :: Vector{Stripeline.TelescopeAngles},
+        signal :: Healpix.HealpixMap,
         pixel_index_ideal,
-        setup::Setup
-        )
+        setup :: Setup
+    )
 
 Generate a collection of Healpix maps.
 """
 function makeErroredMap(
     cam_ang :: Sl.CameraAngles, 
-    telescope_angles,
-    signal,
-    pixel_index_ideal,
-    setup::Setup
+    telescope_angles :: Vector{Sl.TelescopeAngles},
+    signal :: Healpix.HealpixMap,
+    pixel_index_ideal :: Array{Int, 1},
+    setup :: Setup
     )
 
     [makeErroredMap(cam_ang, tel, signal, pixel_index_ideal, setup) for tel in telescope_angles]
@@ -116,7 +116,7 @@ end
 function makeMap(
     cam_ang :: Sl.CameraAngles, 
     telescope_ang :: Nothing,
-    signal,
+    signal :: Healpix.HealpixMap,
     setup::Setup
     )
 
@@ -135,8 +135,8 @@ end
 function makeMapPlots(
     cam_ang :: Sl.CameraAngles, 
     telescope_angles :: Sl.TelescopeAngles,
-    signal,
-    map_ideal,
+    signal :: Healpix.HealpixMap,
+    map_ideal :: Healpix.HealpixMap,
     setup::Setup
     )
     
@@ -147,9 +147,9 @@ end
 
 function makeMapPlots(
     cam_ang :: Sl.CameraAngles, 
-    telescope_angles,
-    signal,
-    map_ideal,
+    telescope_angles :: Vector{Sl.TelescopeAngles},
+    signal :: Healpix.HealpixMap,
+    map_ideal :: Healpix.HealpixMap,
     setup::Setup
     )
     
