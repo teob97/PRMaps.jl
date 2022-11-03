@@ -1,5 +1,5 @@
 import Stripeline as Sl
-using PrmMaps
+using PRMaps
 using Healpix
 using Plots
 

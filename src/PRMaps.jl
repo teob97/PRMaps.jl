@@ -1,4 +1,4 @@
-module PrmMaps
+module PRMaps
 
 import Stripeline as Sl
 using Healpix, Plots
