@@ -12,7 +12,35 @@ Base.@kwdef struct Setup
     NSIDE :: Int32 = 0
 end
 
-"""
+function makeErroredMap()
+
+    wheelfunction(t) = (0.0, deg2rad(20.0), Sl.timetorotang(t, setup.τ_s*60.))
+    sky_tod = Vector{Float64, 1}(undef, length(times))
+
+    for (indx, t) in enumerate(times)
+
+        (dirs_ideal, _) = Sl.genpointings(_ -> wheelfunction(t), cam_ang, setup.times)
+        pixel_index_ideal = ang2pix(signal, dirs_ideal[1], dirs_ideal[2])
+        
+        (dirs, _) = Sl.genpointings(_ -> wheelfunction(t), cam_ang, setup.times; telescope_ang = telescope_ang)
+        
+        sky_tod[indx] = Healpix.interpolate(signal, dirs[1], dirs[2])
+    end
+        
+    # Return the tod containing the observed values associated with the directions with error
+    sky_tod = signal.pixels[pixel_index]
+
+    # Create a map using the values (with error) associated to the pixel that we belive we observe
+    map_values = Sl.tod2map_mpi(pixel_index_ideal, sky_tod, 12*(setup.NSIDE^2))
+
+    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
+    map.pixels = map_values
+    
+    map
+end
+
+
+#= """
     getPixelIndex(
         cam_ang :: Stripeline.CameraAngles,
         telescope_ang :: Stripeline.TelescopeAngles,
@@ -164,6 +192,6 @@ function makeMapPlots(
     pixel_index_ideal = getPixelIndex(cam_ang, nothing, signal, setup)
     maps = makeErroredMap(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
     [plot((map-map_ideal)/map_ideal) for map in maps]
-end
+end =#
 
 end # module PrmMaps
