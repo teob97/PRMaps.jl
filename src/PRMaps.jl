@@ -47,7 +47,7 @@ end
     map
 end =#
 
-function add2map!(
+function fillMap!(
     map :: HealpixMap,
     wheelfunction,
     cam_ang :: Sl.CameraAngles,
@@ -58,15 +58,16 @@ function add2map!(
     dirs :: Array{Float64},
     psi :: Array{Float64},
     )
+    pixbuf = Array{Int}(undef, 4)
+    weightbuf = Array{Float64}(undef, 4)
     for t in setup.times
         
         Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
         pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
         
         Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi; telescope_ang = telescope_ang)
-        pixel_index = ang2pix(signal, dirs[1], dirs[2])
 
-        sky_value = signal.pixels[pixel_index]
+        sky_value = Healpix.interpolate(signal, dirs[1], dirs[2], pixbuf, weightbuf)
 
         add2pixel!(map, sky_value, pixel_index_ideal, hits)
 
@@ -86,7 +87,7 @@ function makeErroredMap(
     psi = Array{Float64}(undef, 1)
     wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
 
-    add2map!(map, wheelfunction, cam_ang, telescope_ang, signal, setup, hits, dirs, psi)
+    fillMap!(map, wheelfunction, cam_ang, telescope_ang, signal, setup, hits, dirs, psi)
 
     map.pixels = map.pixels ./ hits
     map
@@ -111,7 +112,7 @@ This function is provided in two flavours. The second one accepting `telescope_a
 simulate the ideal case.
 
 """
-function getPixelIndex(
+#= function getPixelIndex(
     cam_ang :: Sl.CameraAngles,
     telescope_ang :: Sl.TelescopeAngles,
     signal :: HealpixMap,
@@ -126,7 +127,7 @@ function getPixelIndex(
         colat, long = dirs[i,:]
         pixel_index[i] = ang2pix(signal, colat, long)
     end
-    pixel_index
+    pixel_index, dirs
 end
 
 function getPixelIndex(
@@ -144,9 +145,9 @@ function getPixelIndex(
         colat, long = dirs[i,:]
         pixel_index[i] = ang2pix(signal, colat, long)
     end
-    pixel_index
+    pixel_index, dirs
 end
-
+ =#
 """
     makeErroredMap(
         cam_ang :: Sl.CameraAngles, 
@@ -165,19 +166,22 @@ This function comes into two flavours: telescope_ang could be both a single Sl.T
 or a collection of them returning an Array of HealpixMap.
 
 """
-function makeErroredMap_old(
+#= function makeErroredMap_old(
     cam_ang :: Sl.CameraAngles, 
     telescope_ang :: Sl.TelescopeAngles,
     signal :: Healpix.HealpixMap,
     setup::Setup
     )
     
-    pixel_index_ideal = getPixelIndex(cam_ang, nothing, signal, setup)
-    pixel_index = getPixelIndex(cam_ang, telescope_ang, signal, setup)
+    pixel_index_ideal, _ = getPixelIndex(cam_ang, nothing, signal, setup)
+    _, dirs = getPixelIndex(cam_ang, telescope_ang, signal, setup)
     
     # Return the tod containing the observed values associated with the directions with error
-    sky_tod = signal.pixels[pixel_index]
-
+    pixbuf = Array{Int}(undef, 4)
+    weightbuf = Array{Float64}(undef, 4)
+    for (θ, ϕ) in dirs
+        sky_tod = Healpix.interpolate(signal, θ, ϕ, pixbuf, weightbuf)
+    end
     # Create a map using the values (with error) associated to the pixel that we belive we observe
     map_values = Sl.tod2map_mpi(pixel_index_ideal, sky_tod, 12*(setup.NSIDE^2))
 
@@ -185,7 +189,7 @@ function makeErroredMap_old(
     map.pixels = map_values
     
     map
-end
+end =#
 
 #= function makeErroredMap(
     cam_ang :: Sl.CameraAngles, 
