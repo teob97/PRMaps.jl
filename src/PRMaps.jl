@@ -12,7 +12,7 @@ Base.@kwdef struct Setup
     NSIDE :: Int32 = 0
 end
 
-function add2map!(map, sky_value, pixel_idx, pixel_hits)
+function add2pixel!(map, sky_value, pixel_idx, pixel_hits)
     map.pixels[pixel_idx] += sky_value
     pixel_hits[pixel_idx] += 1
 end
@@ -47,6 +47,32 @@ end
     map
 end =#
 
+function add2map!(
+    map :: HealpixMap,
+    wheelfunction,
+    cam_ang :: Sl.CameraAngles,
+    telescope_ang :: Sl.TelescopeAngles,
+    signal :: HealpixMap,
+    setup :: Setup,
+    hits :: Array{Int32},
+    dirs :: Array{Float64},
+    psi :: Array{Float64},
+    )
+    for t in setup.times
+        
+        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
+        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
+        
+        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi; telescope_ang = telescope_ang)
+        pixel_index = ang2pix(signal, dirs[1], dirs[2])
+
+        sky_value = signal.pixels[pixel_index]
+
+        add2pixel!(map, sky_value, pixel_index_ideal, hits)
+
+    end
+end
+
 function makeErroredMap(
     cam_ang :: Sl.CameraAngles,
     telescope_ang :: Sl.TelescopeAngles,
@@ -58,23 +84,10 @@ function makeErroredMap(
     hits = zeros(Int32, 12*setup.NSIDE*setup.NSIDE)
     dirs = Array{Float64}(undef, 1, 2)
     psi = Array{Float64}(undef, 1)
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
 
-    for t in setup.times
-        
-        wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
+    add2map!(map, wheelfunction, cam_ang, telescope_ang, signal, setup, hits, dirs, psi)
 
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
-        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
-        
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi; telescope_ang = telescope_ang)
-        pixel_index = ang2pix(signal, dirs[1], dirs[2])
-
-        sky_value = signal.pixels[pixel_index]
-
-        add2map!(map, sky_value, pixel_index_ideal, hits)
-
-    end
-    
     map.pixels = map.pixels ./ hits
     map
 end
