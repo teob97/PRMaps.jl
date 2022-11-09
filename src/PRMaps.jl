@@ -17,82 +17,6 @@ function add2pixel!(map, sky_value, pixel_idx, pixel_hits)
     pixel_hits[pixel_idx] += 1
 end
 
-#= function makeErroredMap(
-    cam_ang,
-    telescope_ang,
-    signal,
-    setup
-    )
-
-    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = zeros(Int32, 1, 12*setup.NSIDE*setup.NSIDE)
-
-    for t in setup.times
-
-        (dirs_ideal, _) = Sl.genpointings(cam_ang, t) do time
-            return (0.0, deg2rad(20.0), Sl.timetorotang(time, setup.τ_s*60.))
-        end  
-        pixel_index_ideal = ang2pix(signal, dirs_ideal[1], dirs_ideal[2])
-        
-        (dirs, _) = Sl.genpointings(cam_ang, t; telescope_ang = telescope_ang) do time
-            return (0.0, deg2rad(20.0), Sl.timetorotang(time, setup.τ_s*60.))
-        end  
-
-        sky_value = Healpix.interpolate(signal, dirs[1], dirs[2])
-
-        tod2map!(map, sky_value, pixel_index_ideal, hits)
-
-    end
-    
-    map
-end =#
-
-function fillMap!(
-    map :: HealpixMap,
-    wheelfunction,
-    cam_ang :: Sl.CameraAngles,
-    telescope_ang :: Sl.TelescopeAngles,
-    signal :: HealpixMap,
-    setup :: Setup,
-    hits :: Array{Int32},
-    dirs :: Array{Float64},
-    psi :: Array{Float64},
-    )
-    pixbuf = Array{Int}(undef, 4)
-    weightbuf = Array{Float64}(undef, 4)
-    for t in setup.times
-        
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
-        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
-        
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi; telescope_ang = telescope_ang)
-
-        sky_value = Healpix.interpolate(signal, dirs[1], dirs[2], pixbuf, weightbuf)
-
-        add2pixel!(map, sky_value, pixel_index_ideal, hits)
-
-    end
-end
-
-function makeErroredMap(
-    cam_ang :: Sl.CameraAngles,
-    telescope_ang :: Sl.TelescopeAngles,
-    signal :: HealpixMap,
-    setup :: Setup
-    )
-
-    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = zeros(Int32, 12*setup.NSIDE*setup.NSIDE)
-    dirs = Array{Float64}(undef, 1, 2)
-    psi = Array{Float64}(undef, 1)
-    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
-
-    fillMap!(map, wheelfunction, cam_ang, telescope_ang, signal, setup, hits, dirs, psi)
-
-    map.pixels = map.pixels ./ hits
-    map
-end
-
 """
     getPixelIndex(
         cam_ang :: Stripeline.CameraAngles,
@@ -108,13 +32,10 @@ This function return the indeces of the pixel seeing by the telescope given:
     - `signal :: Healpix.HealpixMap` : the input map that the telescope is going to observe;
     - `setup :: PRMaps.Setup` : encoding the information about period of observation and resolution.
 
-This function is provided in two flavours. The second one accepting `telescope_ang = nothing` is used to
-simulate the ideal case.
-
 """
-#= function getPixelIndex(
+function getPixelIndex(
     cam_ang :: Sl.CameraAngles,
-    telescope_ang :: Sl.TelescopeAngles,
+    telescope_ang :: Union{Nothing, Sl.TelescopeAngles},
     signal :: HealpixMap,
     setup :: Setup
     )
@@ -127,83 +48,120 @@ simulate the ideal case.
         colat, long = dirs[i,:]
         pixel_index[i] = ang2pix(signal, colat, long)
     end
-    pixel_index, dirs
+    pixel_index
 end
 
-function getPixelIndex(
+function fillMap!(
+    map :: HealpixMap,
+    wheelfunction,
     cam_ang :: Sl.CameraAngles,
-    telescope_ang :: Nothing,
+    telescope_ang :: Sl.TelescopeAngles,
+    signal :: HealpixMap,
+    setup :: Setup,
+    hits :: Array{Int32},
+    )
+    
+    pixbuf = Array{Int}(undef, 4)
+    weightbuf = Array{Float64}(undef, 4)
+    dirs = Array{Float64}(undef, 1, 2)
+    psi = Array{Float64}(undef, 1)
+    
+    for t in setup.times
+        
+        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
+        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
+        
+        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi; telescope_ang = telescope_ang)
+
+        sky_value = Healpix.interpolate(signal, dirs[1], dirs[2], pixbuf, weightbuf)
+
+        add2pixel!(map, sky_value, pixel_index_ideal, hits)
+
+    end
+end
+
+function fillTOD!(
+    tod,
+    wheelfunction,
+    cam_ang :: Sl.CameraAngles,
+    telescope_ang :: Sl.TelescopeAngles,
+    signal :: HealpixMap,
+    setup :: Setup,
+    )
+
+    pixbuf = Array{Int}(undef, 4)
+    weightbuf = Array{Float64}(undef, 4)
+    dirs = Array{Float64}(undef, 1, 2)
+    psi = Array{Float64}(undef, 1)
+    
+    for (indx, t) in enumerate(setup.times)
+        
+        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi; telescope_ang = telescope_ang)
+
+        sky_value = Healpix.interpolate(signal, dirs[1], dirs[2], pixbuf, weightbuf)
+
+        tod[indx] = sky_value
+
+    end
+end
+
+function makeErroredMap(
+    cam_ang :: Sl.CameraAngles,
+    telescope_ang :: Sl.TelescopeAngles,
     signal :: HealpixMap,
     setup :: Setup
     )
-    
-    pixel_index = Array{Int}(undef, length(setup.times))
-    (dirs, _) = Sl.genpointings(cam_ang, setup.times) do time_s
-        return (0.0, deg2rad(20.0), Sl.timetorotang(time_s, setup.τ_s*60.))
-    end
-    for i in 1:length(setup.times)
-        colat, long = dirs[i,:]
-        pixel_index[i] = ang2pix(signal, colat, long)
-    end
-    pixel_index, dirs
+
+    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
+    hits = zeros(Int32, 12*setup.NSIDE*setup.NSIDE)
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
+
+    fillMap!(map, wheelfunction, cam_ang, telescope_ang, signal, setup, hits)
+
+    map.pixels = map.pixels ./ hits
+    map
 end
- =#
+
+
 """
-    makeErroredMap(
+    makeErroredMap_old(
         cam_ang :: Sl.CameraAngles, 
         telescope_angles,
         signal :: Healpix.HealpixMap,
-        pixel_index_ideal :: Array{Int, 1},
         setup :: Setup
     )
 
-Generate a collection of Healpix maps using a telescope model that takes into account of
+Generate a Healpix map using a telescope model that takes into account of
 the non idealities to generate the pointing direction. The observed values instead are
 calculated taking into account the ideal pointing directions. The result is a map affected
 by an error due to the non idealities of the system.
 
-This function comes into two flavours: telescope_ang could be both a single Sl.TelescopeAngles
-or a collection of them returning an Array of HealpixMap.
-
 """
-#= function makeErroredMap_old(
-    cam_ang :: Sl.CameraAngles, 
+function makeErroredMap_old(
+    cam_ang :: Sl.CameraAngles,
     telescope_ang :: Sl.TelescopeAngles,
-    signal :: Healpix.HealpixMap,
-    setup::Setup
-    )
-    
-    pixel_index_ideal, _ = getPixelIndex(cam_ang, nothing, signal, setup)
-    _, dirs = getPixelIndex(cam_ang, telescope_ang, signal, setup)
-    
-    # Return the tod containing the observed values associated with the directions with error
-    pixbuf = Array{Int}(undef, 4)
-    weightbuf = Array{Float64}(undef, 4)
-    for (θ, ϕ) in dirs
-        sky_tod = Healpix.interpolate(signal, θ, ϕ, pixbuf, weightbuf)
-    end
+    signal :: HealpixMap,
+    setup :: Setup   
+)
+    ideal_indx = getPixelIndex(cam_ang, nothing, signal, setup)
+
+    tod = Array{Float64}(undef, length(setup.times))
+
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
+
+    fillTOD!(tod, wheelfunction, cam_ang, telescope_ang, signal, setup)
+
     # Create a map using the values (with error) associated to the pixel that we belive we observe
-    map_values = Sl.tod2map_mpi(pixel_index_ideal, sky_tod, 12*(setup.NSIDE^2))
+    map_values = Sl.tod2map_mpi(ideal_indx, tod, 12*(setup.NSIDE^2))
 
     map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
     map.pixels = map_values
     
     map
-end =#
 
-#= function makeErroredMap(
-    cam_ang :: Sl.CameraAngles, 
-    telescope_angles :: Vector{Sl.TelescopeAngles},
-    signal :: Healpix.HealpixMap,
-    pixel_index_ideal :: Array{Int, 1},
-    setup :: Setup
-    )
+end
 
-    [makeErroredMap(cam_ang, tel, signal, pixel_index_ideal, setup) for tel in telescope_angles]
-    
-end =#
 
-# Flavour to make ideal maps
 function makeIdealMap(
     cam_ang :: Sl.CameraAngles, 
     telescope_ang :: Nothing,
@@ -222,32 +180,5 @@ function makeIdealMap(
 
     map
 end
-
-#= function makeMapPlots(
-    cam_ang :: Sl.CameraAngles, 
-    telescope_angles :: Sl.TelescopeAngles,
-    signal :: Healpix.HealpixMap,
-    map_ideal :: Healpix.HealpixMap,
-    setup::Setup
-    )
-    
-    pixel_index_ideal = getPixelIndex(cam_ang, nothing, signal, setup)
-    map = makeErroredMap(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
-    result = (map-map_ideal)/map_ideal
-    plot(result)
-end
-
-function makeMapPlots(
-    cam_ang :: Sl.CameraAngles, 
-    telescope_angles :: Vector{Sl.TelescopeAngles},
-    signal :: Healpix.HealpixMap,
-    map_ideal :: Healpix.HealpixMap,
-    setup::Setup
-    )
-    
-    pixel_index_ideal = getPixelIndex(cam_ang, nothing, signal, setup)
-    maps = makeErroredMap(cam_ang, telescope_angles, signal, pixel_index_ideal, setup)
-    [plot((map-map_ideal)/map_ideal) for map in maps]
-end =#
 
 end # module PrmMaps
