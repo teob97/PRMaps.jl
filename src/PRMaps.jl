@@ -34,6 +34,7 @@ This function return the indeces of the pixel seeing by the telescope given:
 
 """
 function getPixelIndex(
+    wheelfunction,
     cam_ang :: Sl.CameraAngles,
     telescope_ang :: Union{Nothing, Sl.TelescopeAngles},
     signal :: HealpixMap,
@@ -41,12 +42,12 @@ function getPixelIndex(
     )
     
     pixel_index = Array{Int}(undef, length(setup.times))
-    (dirs, _) = Sl.genpointings(cam_ang, setup.times; telescope_ang = telescope_ang) do time_s
-        return (0.0, deg2rad(20.0), Sl.timetorotang(time_s, setup.τ_s*60.))
-    end
+    dirs = Array{Float64}(undef, 1, 2)
+    psi = Array{Float64}(undef, 1)
     for i in 1:length(setup.times)
-        colat, long = dirs[i,:]
-        pixel_index[i] = ang2pix(signal, colat, long)
+    dirs = Array{Float64}(undef, 1, 2)
+        Sl.genpointings!(wheelfunction, cam_ang, i, dirs, psi; telescope_ang = telescope_ang)
+        pixel_index[i] = ang2pix(signal, dirs[1], dirs[2])
     end
     pixel_index
 end
@@ -143,19 +144,17 @@ function makeErroredMap_old(
     signal :: HealpixMap,
     setup :: Setup   
 )
-    ideal_indx = getPixelIndex(cam_ang, nothing, signal, setup)
-
     tod = Array{Float64}(undef, length(setup.times))
 
     wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
 
+    ideal_indx = getPixelIndex(wheelfunction ,cam_ang, nothing, signal, setup)
+
     fillTOD!(tod, wheelfunction, cam_ang, telescope_ang, signal, setup)
 
     # Create a map using the values (with error) associated to the pixel that we belive we observe
-    map_values = Sl.tod2map_mpi(ideal_indx, tod, 12*(setup.NSIDE^2))
-
     map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    map.pixels = map_values
+    map.pixels = Sl.tod2map_mpi(ideal_indx, tod, 12*(setup.NSIDE^2))
     
     map
 
@@ -169,7 +168,9 @@ function makeIdealMap(
     setup::Setup
     )
 
-    pixel_index = getPixelIndex(cam_ang, telescope_ang, signal, setup)
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
+
+    pixel_index = getPixelIndex(wheelfunction, cam_ang, telescope_ang, signal, setup)
 
     sky_tod = signal.pixels[pixel_index]
 
