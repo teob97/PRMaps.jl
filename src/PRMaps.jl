@@ -12,9 +12,9 @@ Base.@kwdef struct Setup
     NSIDE :: Int32 = 0
 end
 
-function add2pixel!(map, sky_value, pixel_idx, pixel_hits)
+function add2pixel!(map, sky_value, pixel_idx, hits_map)
     map.pixels[pixel_idx] += sky_value
-    pixel_hits[pixel_idx] += 1
+    hits_map.pixels[pixel_idx] += 1
 end
 
 """
@@ -60,7 +60,7 @@ function fillMap!(
     telescope_ang :: Sl.TelescopeAngles,
     signal :: HealpixMap,
     setup :: Setup,
-    hits :: Array{Int32},
+    hits :: HealpixMap,
     )
     
     pixbuf = Array{Int}(undef, 4)
@@ -115,7 +115,7 @@ function makeErroredMap(
     )
 
     map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = zeros(Int32, 12*setup.NSIDE*setup.NSIDE)
+    hits = HealpixMap{Int32, RingOrder}(setup.NSIDE)#zeros(Int32, 12*setup.NSIDE*setup.NSIDE)
     wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
 
     fillMap!(wheelfunction, map, cam_ang, telescope_ang, signal, setup, hits)
