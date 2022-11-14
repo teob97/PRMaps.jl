@@ -116,7 +116,7 @@ function makeIdealMap(
 
     fillIdealMap!(wheelfunction, map, cam_ang, signal, setup, hits)
 
-    map.pixels = map.pixels ./ hits
+    map.pixels = map.pixels ./ hits.pixels
     map
 end
 
