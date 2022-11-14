@@ -122,14 +122,13 @@ end
 
 function plotErrorMap(
     cam_ang, 
-    telescope_ang, 
-    signal :: HealpixMap, 
+    telescope_ang,
+    signal :: HealpixMap,
+    ideal_map :: HealpixMap, 
     setup :: Setup
     )
     
-    ideal_map = makeIdealMap(cam_ang, signal, setup)
-    errored_map = makeErroredMap(cam_ang, telescope_ang, signal, setup)
-    result_map = ideal_map - errored_map
+    result_map = makeErroredMap(cam_ang, telescope_ang, signal, setup) - ideal_map
 
     map = plot(result_map)
     hist = histogram(result_map[isfinite.(result_map)])
