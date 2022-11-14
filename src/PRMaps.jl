@@ -2,9 +2,9 @@ module PRMaps
 
 import Stripeline as Sl
 using Healpix, Plots
+
 export Setup
-export makeIdealMap, makeErroredMap, makeMapPlots, makeErroredMap_old
-export getPixelIndex
+export makeIdealMap, makeErroredMap, plotErrorMap
 
 Base.@kwdef struct Setup
     τ_s :: Float64 = 0.0
@@ -118,6 +118,25 @@ function makeIdealMap(
 
     map.pixels = map.pixels ./ hits
     map
+end
+
+function plotErrorMap(
+    cam_ang, 
+    telescope_ang, 
+    signal :: HealpixMap, 
+    setup :: Setup
+    )
+    
+    ideal_map = makeIdealMap(cam_ang, signal, setup)
+    errored_map = makeErroredMap(cam_ang, telescope_ang, signal, setup)
+    result_map = ideal_map - errored_map
+
+    map = plot(result_map)
+    hist = histogram(result_map[isfinite.(result_map)])
+    hist_abs = histogram(abs.(result_map[isfinite.(result_map)]))
+
+    plot(map, hist, hist_abs, layout = (1,3), size = (1500,500))
+
 end
 
 end # module PrmMaps
