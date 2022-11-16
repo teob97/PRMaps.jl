@@ -47,7 +47,7 @@ function fillMap!(
 end
 
 """
-    makeErroredMap_old(
+    makeErroredMap(
         cam_ang :: Sl.CameraAngles, 
         telescope_angles,
         signal :: Healpix.HealpixMap,
