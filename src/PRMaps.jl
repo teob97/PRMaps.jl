@@ -73,7 +73,7 @@ function makeErroredMap(
 
     fillMap!(wheelfunction, map, cam_ang, telescope_ang, signal, setup, hits)
 
-    map.pixels = map.pixels ./ hits
+    map.pixels .= map.pixels ./ hits
     map
 end
 
@@ -134,7 +134,7 @@ function plotErrorMap(
     hist = histogram(result_map[isfinite.(result_map)])
     hist_abs = histogram(abs.(result_map[isfinite.(result_map)]))
 
-    plot(map, hist, hist_abs, layout = (1,3), size = (1500,500))
+    plot(map, hist, hist_abs, layout = (1,3), size = (1500,300))
 
 end
 
