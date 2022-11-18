@@ -120,23 +120,7 @@ function makeIdealMap(
     map
 end
 
-function plotErrorMap(
-    cam_ang, 
-    telescope_ang,
-    signal :: HealpixMap,
-    ideal_map :: HealpixMap, 
-    setup :: Setup
-    )
-    
-    result_map = makeErroredMap(cam_ang, telescope_ang, signal, setup) - ideal_map
 
-    map = plot(result_map)
-    hist = histogram(result_map[isfinite.(result_map)])
-    hist_abs = histogram(abs.(result_map[isfinite.(result_map)]))
-
-    plot(map, hist, hist_abs, layout = (1,3), size = (1500,300))
-
-end
 
 end # module PrmMaps
 
