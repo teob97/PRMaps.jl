@@ -1,2 +1,4 @@
 input_maps
-notebooks/benchmark.jl
+notebooks
+
+!notebooks/plot.ipynb
