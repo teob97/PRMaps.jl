@@ -5,9 +5,9 @@ using PRMaps
 export makePolDegreeMap, makePolAngMap,makePolMap_old, makePolAngErrorMap
 
 function makePolDegreeMap(
-    signal :: PolarizedHealpixMap,
     cam_ang :: Sl.CameraAngles,
     telescope_ang :: Sl.TelescopeAngles,
+    signal :: PolarizedHealpixMap,
     setup :: Setup
     )
 
@@ -36,14 +36,14 @@ function makePolDegreeMap(
     end
 
     map.pixels .= map.pixels ./ hits
-    map
+    return map
 end
 
 
 # Make the ideal polarization map
 function makePolDegreeMap(
-    signal :: PolarizedHealpixMap,
     cam_ang :: Sl.CameraAngles,
+    signal :: PolarizedHealpixMap,
     setup :: Setup
     )
 
@@ -70,13 +70,13 @@ function makePolDegreeMap(
     end
 
     map.pixels = map.pixels ./ hits.pixels
-    map
+    return map
 end
 
 function makePolAngMap(
-    signal :: PolarizedHealpixMap,
     cam_ang :: Sl.CameraAngles,
     telescope_ang :: Sl.TelescopeAngles,
+    signal :: PolarizedHealpixMap,
     setup :: Setup
     )
 
@@ -104,14 +104,14 @@ function makePolAngMap(
     end
 
     map.pixels .= map.pixels ./ hits
-    map
+    return map
 end
 
 
 # Make the ideal polarization angle map
 function makePolAngMap(
-    signal :: PolarizedHealpixMap,
     cam_ang :: Sl.CameraAngles,
+    signal :: PolarizedHealpixMap,
     setup :: Setup
     )
 
@@ -137,14 +137,14 @@ function makePolAngMap(
     end
 
     map.pixels = map.pixels ./ hits.pixels
-    map
+    return map
 end
 
 
 function makePolAngErrorMap(
-    signal :: PolarizedHealpixMap,
     cam_ang :: Sl.CameraAngles,
     telescope_ang :: Sl.TelescopeAngles,
+    signal :: PolarizedHealpixMap,
     setup :: Setup
     )
 
@@ -176,7 +176,7 @@ function makePolAngErrorMap(
     end
 
     map.pixels .= map.pixels ./ hits
-    map
+    return map
 end
 
 # --------------
@@ -184,8 +184,8 @@ end
 # --------------
 
 function makePolMap_old(
-    signal::PolarizedHealpixMap,
     cam_ang::CameraAngles,
+    signal::PolarizedHealpixMap,
     setup::Setup
 )
     i_map = makeIdealMap(cam_ang, signal.i, setup)
@@ -201,9 +201,9 @@ function makePolMap_old(
 end
 
 function makePolMap_old(
-    signal::PolarizedHealpixMap,
     cam_ang::CameraAngles,
     tel_ang::TelescopeAngles,
+    signal::PolarizedHealpixMap,
     setup::Setup
 )
     i_map = makeErroredMap(cam_ang, tel_ang, signal.i, setup)

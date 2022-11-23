@@ -14,6 +14,7 @@ end
 function add2pixel!(map, sky_value, pixel_idx, hits_map)
     map.pixels[pixel_idx] += sky_value
     hits_map.pixels[pixel_idx] += 1
+    return nothing
 end
 
 function fillMap!(
@@ -43,6 +44,7 @@ function fillMap!(
         add2pixel!(map, sky_value, pixel_index_ideal, hits)
 
     end
+    return nothing
 end
 
 """
@@ -73,7 +75,7 @@ function makeErroredMap(
     fillMap!(wheelfunction, map, cam_ang, telescope_ang, signal, setup, hits)
 
     map.pixels .= map.pixels ./ hits
-    map
+    return map
 end
 
 function fillIdealMap!(
@@ -101,6 +103,7 @@ function fillIdealMap!(
         add2pixel!(map, sky_value, pixel_index_ideal, hits)
 
     end
+    return nothing
 end
 
 function makeIdealMap(
@@ -116,5 +119,5 @@ function makeIdealMap(
     fillIdealMap!(wheelfunction, map, cam_ang, signal, setup, hits)
 
     map.pixels = map.pixels ./ hits.pixels
-    map
+    return map
 end
