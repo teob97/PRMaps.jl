@@ -78,7 +78,7 @@ end
 """
     makeErroredMap(
         cam_ang :: Sl.CameraAngles, 
-        telescope_angles,
+        telescope_angles :: Sl.TelescopeAngles,
         signal :: Healpix.HealpixMap,
         setup :: Setup
     )
@@ -106,6 +106,15 @@ function makeErroredMap(
     return map
 end
 
+"""
+    makeIdealMap(
+        cam_ang :: Sl.CameraAngles, 
+        signal :: Healpix.HealpixMap,
+        setup :: Setup
+    )
+
+Generate a Healpix map using an ideal telescope model.
+"""
 function makeIdealMap(
     cam_ang :: Sl.CameraAngles,
     signal :: HealpixMap,
