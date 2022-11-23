@@ -36,7 +36,7 @@ function makePolDegreeMap(
     end
 
     map.pixels .= map.pixels ./ hits
-    return map
+    return (map, hits)
 end
 
 
@@ -70,7 +70,7 @@ function makePolDegreeMap(
     end
 
     map.pixels = map.pixels ./ hits.pixels
-    return map
+    return (map, hits)
 end
 
 function makePolAngMap(
@@ -104,7 +104,7 @@ function makePolAngMap(
     end
 
     map.pixels .= map.pixels ./ hits
-    return map
+    return (map, hits)
 end
 
 
@@ -137,7 +137,7 @@ function makePolAngMap(
     end
 
     map.pixels = map.pixels ./ hits.pixels
-    return map
+    return (map, hits)
 end
 
 
@@ -176,7 +176,7 @@ function makePolAngErrorMap(
     end
 
     map.pixels .= map.pixels ./ hits
-    return map
+    return (map, hits)
 end
 
 # --------------

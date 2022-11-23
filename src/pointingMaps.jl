@@ -103,7 +103,7 @@ function makeErroredMap(
     fillMap!(wheelfunction, map, cam_ang, telescope_ang, signal, setup, hits)
 
     map.pixels .= map.pixels ./ hits
-    return map
+    return (map. hits)
 end
 
 """
@@ -128,5 +128,5 @@ function makeIdealMap(
     fillIdealMap!(wheelfunction, map, cam_ang, signal, setup, hits)
 
     map.pixels = map.pixels ./ hits.pixels
-    return map
+    return (map, hits)
 end
