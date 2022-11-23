@@ -103,7 +103,7 @@ function makeErroredMap(
     fillMap!(wheelfunction, map, cam_ang, telescope_ang, signal, setup, hits)
 
     map.pixels .= map.pixels ./ hits
-    return (map. hits)
+    return (map, hits)
 end
 
 """
