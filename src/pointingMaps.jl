@@ -47,6 +47,34 @@ function fillMap!(
     return nothing
 end
 
+function fillIdealMap!(
+    wheelfunction,
+    map :: HealpixMap,
+    cam_ang :: Sl.CameraAngles,
+    signal :: HealpixMap,
+    setup :: Setup,
+    hits :: HealpixMap,
+    )
+    
+    pixbuf = Array{Int}(undef, 4)
+    weightbuf = Array{Float64}(undef, 4)
+    dirs = Array{Float64}(undef, 1, 2)
+    psi = Array{Float64}(undef, 1)
+    
+    for t in setup.times
+        
+        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
+        
+        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
+
+        sky_value = Healpix.interpolate(signal, dirs[1], dirs[2], pixbuf, weightbuf)
+
+        add2pixel!(map, sky_value, pixel_index_ideal, hits)
+
+    end
+    return nothing
+end
+
 """
     makeErroredMap(
         cam_ang :: Sl.CameraAngles, 
@@ -76,34 +104,6 @@ function makeErroredMap(
 
     map.pixels .= map.pixels ./ hits
     return map
-end
-
-function fillIdealMap!(
-    wheelfunction,
-    map :: HealpixMap,
-    cam_ang :: Sl.CameraAngles,
-    signal :: HealpixMap,
-    setup :: Setup,
-    hits :: HealpixMap,
-    )
-    
-    pixbuf = Array{Int}(undef, 4)
-    weightbuf = Array{Float64}(undef, 4)
-    dirs = Array{Float64}(undef, 1, 2)
-    psi = Array{Float64}(undef, 1)
-    
-    for t in setup.times
-        
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
-        
-        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
-
-        sky_value = Healpix.interpolate(signal, dirs[1], dirs[2], pixbuf, weightbuf)
-
-        add2pixel!(map, sky_value, pixel_index_ideal, hits)
-
-    end
-    return nothing
 end
 
 function makeIdealMap(
