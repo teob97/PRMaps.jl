@@ -2,218 +2,107 @@ using Stripeline
 using Healpix
 using PRMaps
 
-export makePolDegreeMap, makePolAngMap,makePolMap_old, makePolAngErrorMap
+export makePolMap, makePolDegreeMap, makePolAngMap
+export polAngleMap!, polDegreeMap!
 
-function makePolDegreeMap(
-    cam_ang :: Sl.CameraAngles,
-    telescope_ang :: Sl.TelescopeAngles,
-    signal :: PolarizedHealpixMap,
-    setup :: Setup
-    )
-
-    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = HealpixMap{Int32, RingOrder}(setup.NSIDE)
-    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
-
-    pixbuf = Array{Int}(undef, 4)
-    weightbuf = Array{Float64}(undef, 4)
-    dirs = Array{Float64}(undef, 1, 2)
-    psi = Array{Float64}(undef, 1)
-    
-    for t in setup.times
-        
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
-        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
-        
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi; telescope_ang = telescope_ang)
-
-        i_value = Healpix.interpolate(signal.i, dirs[1], dirs[2], pixbuf, weightbuf)
-        q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
-        u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
-
-        add2pixel!(map, sqrt(q_value^2+u_value^2)/i_value, pixel_index_ideal, hits)
-
-    end
-
-    map.pixels .= map.pixels ./ hits
-    return (map, hits)
-end
-
-
-# Make the ideal polarization map
-function makePolDegreeMap(
-    cam_ang :: Sl.CameraAngles,
-    signal :: PolarizedHealpixMap,
-    setup :: Setup
-    )
-
-    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = HealpixMap{Int32, RingOrder}(setup.NSIDE)
-    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
-
-    pixbuf = Array{Int}(undef, 4)
-    weightbuf = Array{Float64}(undef, 4)
-    dirs = Array{Float64}(undef, 1, 2)
-    psi = Array{Float64}(undef, 1)
-    
-    for t in setup.times
-        
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
-        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
-
-        i_value = Healpix.interpolate(signal.i, dirs[1], dirs[2], pixbuf, weightbuf)
-        q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
-        u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
-
-        add2pixel!(map, sqrt(q_value^2+u_value^2)/i_value, pixel_index_ideal, hits)
-
-    end
-
-    map.pixels = map.pixels ./ hits.pixels
-    return (map, hits)
-end
-
-function makePolAngMap(
-    cam_ang :: Sl.CameraAngles,
-    telescope_ang :: Sl.TelescopeAngles,
-    signal :: PolarizedHealpixMap,
-    setup :: Setup
-    )
-
-    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = HealpixMap{Int32, RingOrder}(setup.NSIDE)
-    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
-
-    pixbuf = Array{Int}(undef, 4)
-    weightbuf = Array{Float64}(undef, 4)
-    dirs = Array{Float64}(undef, 1, 2)
-    psi = Array{Float64}(undef, 1)
-    
-    for t in setup.times
-        
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
-        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
-        
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi; telescope_ang = telescope_ang)
-
-        q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
-        u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
-
-        add2pixel!(map, 0.5 * atan(u_value , q_value), pixel_index_ideal, hits)
-
-    end
-
-    map.pixels .= map.pixels ./ hits
-    return (map, hits)
-end
-
-
-# Make the ideal polarization angle map
-function makePolAngMap(
-    cam_ang :: Sl.CameraAngles,
-    signal :: PolarizedHealpixMap,
-    setup :: Setup
-    )
-
-    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = HealpixMap{Int32, RingOrder}(setup.NSIDE)
-    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
-
-    pixbuf = Array{Int}(undef, 4)
-    weightbuf = Array{Float64}(undef, 4)
-    dirs = Array{Float64}(undef, 1, 2)
-    psi = Array{Float64}(undef, 1)
-    
-    for t in setup.times
-        
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
-        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
-
-        q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
-        u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
-
-        add2pixel!(map, 0.5 * atan(u_value , q_value), pixel_index_ideal, hits)
-
-    end
-
-    map.pixels = map.pixels ./ hits.pixels
-    return (map, hits)
-end
-
-
-function makePolAngErrorMap(
-    cam_ang :: Sl.CameraAngles,
-    telescope_ang :: Sl.TelescopeAngles,
-    signal :: PolarizedHealpixMap,
-    setup :: Setup
-    )
-
-    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = HealpixMap{Int32, RingOrder}(setup.NSIDE)
-    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
-
-    pixbuf = Array{Int}(undef, 4)
-    weightbuf = Array{Float64}(undef, 4)
-    dirs = Array{Float64}(undef, 1, 2)
-    psi = Array{Float64}(undef, 1)
-    
-    for t in setup.times
-        
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
-        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
-        q_value_ideal = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
-        u_value_ideal = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
-
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi; telescope_ang = telescope_ang)
-        q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
-        u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
-
-        ideal = q_value_ideal/u_value_ideal
-        error = q_value/u_value
-
-        add2pixel!(map, 0.5 * atan((error - ideal) , (1 + error*ideal)), pixel_index_ideal, hits)
-
-    end
-
-    map.pixels .= map.pixels ./ hits
-    return (map, hits)
-end
-
-# --------------
-# Slow funciotns
-# --------------
-
-function makePolMap_old(
+function makePolMap(
     cam_ang::CameraAngles,
     signal::PolarizedHealpixMap,
     setup::Setup
 )
-    i_map = makeIdealMap(cam_ang, signal.i, setup)
-    q_map = makeIdealMap(cam_ang, signal.q, setup)
-    u_map = makeIdealMap(cam_ang, signal.u, setup)
-
-    p_map = HealpixMap{Float64, RingOrder}(setup.NSIDE) 
+    q_map, _ = makeIdealMap(cam_ang, signal.q, setup)
+    u_map, _ = makeIdealMap(cam_ang, signal.u, setup)
     
-    p_map.pixels = sqrt.(q_map[:].^2 + u_map[:].^2) ./ i_map[:]
-    
-    return p_map
+    return (q_map, u_map)
 
 end
 
-function makePolMap_old(
+function makePolMap(
     cam_ang::CameraAngles,
     tel_ang::TelescopeAngles,
     signal::PolarizedHealpixMap,
     setup::Setup
 )
-    i_map = makeErroredMap(cam_ang, tel_ang, signal.i, setup)
-    q_map = makeErroredMap(cam_ang, tel_ang, signal.q, setup)
-    u_map = makeErroredMap(cam_ang, tel_ang, signal.u, setup)
+    q_map, _ = makeErroredMap(cam_ang, tel_ang, signal.q, setup)
+    u_map, _ = makeErroredMap(cam_ang, tel_ang, signal.u, setup)
 
-    p_map = HealpixMap{Float64, RingOrder}(setup.NSIDE) 
-    
+    return (q_map, u_map)
+
+end
+
+function polDegreeMap!(
+    p_map::HealpixMap,
+    i_map::HealpixMap,
+    q_map::HealpixMap,
+    u_map::HealpixMap
+)
     p_map.pixels = sqrt.(q_map[:].^2 + u_map[:].^2) ./ i_map[:]
-    
-    return p_map
+    return nothing
+end
 
+function makePolDegreeMap(
+    cam_ang::CameraAngles,
+    tel_ang::TelescopeAngles,
+    signal::PolarizedHealpixMap,
+    setup::Setup
+)
+    (q_map, u_map) = makePolMap(cam_ang, tel_ang, signal, setup)
+    i_map, _ = makeErroredMap(cam_ang, tel_ang, signal, setup)
+    p_map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
+    
+    polDegreeMap!(p_map, i_map, q_map, u_map)
+
+    return p_map
+end
+
+function makePolDegreeMap(
+    cam_ang::CameraAngles,
+    signal::PolarizedHealpixMap,
+    setup::Setup
+)
+    (q_map, u_map) = makePolMap(cam_ang, signal, setup)
+    i_map, _ = makeIdealMap(cam_ang, signal, setup)
+    p_map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
+    
+    polDegreeMap!(p_map, i_map, q_map, u_map)
+
+    return p_map
+end
+
+function polAngleMap!(
+    ang_map::HealpixMap,
+    q_map::HealpixMap,
+    u_map::HealpixMap
+)
+    ang_map.pixels = 0.5 .* atan.(u_map[:], q_map[:]) 
+    return nothing
+end
+
+function makePolAngMap(
+    cam_ang :: Sl.CameraAngles,
+    tel_ang :: Sl.TelescopeAngles,
+    signal :: PolarizedHealpixMap,
+    setup :: Setup
+    )
+
+    (q_map, u_map) = makePolMap(cam_ang, tel_ang, signal, setup)
+    p_map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
+    
+    polAngleMap!(p_map, q_map, u_map)
+
+    return p_map
+end
+
+function makePolAngMap(
+    cam_ang :: Sl.CameraAngles,
+    signal :: PolarizedHealpixMap,
+    setup :: Setup
+    )
+
+    (q_map, u_map) = makePolMap(cam_ang, signal, setup)
+    p_map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
+    
+    polAngleMap!(p_map, q_map, u_map)
+
+    return p_map
 end
