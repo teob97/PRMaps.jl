@@ -834,7 +834,7 @@ version = "0.3.5"
 
 [[deps.Stripeline]]
 deps = ["AstroLib", "AstroTime", "BenchmarkTools", "CorrNoise", "Dates", "Documenter", "FITSIO", "Healpix", "LinearAlgebra", "MPI", "Printf", "Random", "RandomNumbers", "RecipesBase", "StaticArrays", "Statistics", "Test", "YAML"]
-git-tree-sha1 = "2b0baf57eb3ded64e306273f769df784cb57cb50"
+git-tree-sha1 = "95be64d9370011dfa75539fb9ffa866f1ac84a17"
 repo-rev = "prm"
 repo-url = "https://github.com/lspestrip/Stripeline.jl"
 uuid = "45029ab0-c194-11e8-0c82-65ed36a31fad"
@@ -873,9 +873,9 @@ deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[deps.URIs]]
-git-tree-sha1 = "e59ecc5a41b000fa94423a578d29290c7266fc10"
+git-tree-sha1 = "ac00576f90d8a259f2c9d823e91d1de3fd44d348"
 uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
-version = "1.4.0"
+version = "1.4.1"
 
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]
