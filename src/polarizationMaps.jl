@@ -30,6 +30,39 @@ function makePolMap(
 
 end
 
+"""
+    makePolMap(
+        cam_ang::Stripeline.CameraAngles,
+        signal::Healpix.PolarizedHealpixMap,
+        setup::PRMaps.Setup
+    )
+
+    makePolMap(
+        cam_ang::Stripeline.CameraAngles,
+        tel_ang::Stripeline.TelescopeAngles,
+        signal::Healpix.PolarizedHealpixMap,
+        setup::PRMaps.Setup
+    )
+
+Return the Q and U maps of the sky observed by a telescope 
+whose camera point towards a direction encoded by
+the CameraAngles struct.
+
+The second flavour, with a TelescopeAngles as input, produce a
+map affected by an error. See [makeErroredMap](@ref)
+
+Input:
+- `cam_ang :: CameraAngles` encoding the pointing direction of the detector;
+- `tel_ang::Stripeline.TelescopeAngles` encoding the non idealities of the telescope;
+- `signal::Healpix.PolarizedHealpixMap` the signal (Q,U,I) that the telescope are going to observe;
+- `setup::PRMaps.Setup` see [Setup](@ref).
+
+Output:
+- `(q_map, u_map)` each of them is an HealpixMap containing respectively the Q and U components observed by the telescope.
+"""
+makePolMap
+
+
 function polDegreeMap!(
     p_map::HealpixMap,
     i_map::HealpixMap,
