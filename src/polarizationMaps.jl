@@ -4,6 +4,7 @@ using PRMaps
 
 export makePolMap, makePolDegreeMap, makePolAngMap
 export polAngleMap!, polDegreeMap!
+export differenceAngMaps
 
 function makePolMap(
     cam_ang::CameraAngles,
@@ -62,7 +63,8 @@ Output:
 """
 makePolMap
 
-
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
 
 """
     function polDegreeMap!(
@@ -93,6 +95,10 @@ function polDegreeMap!(
     q_map::HealpixMap,
     u_map::HealpixMap
 )
+    @assert Healpix.conformables(p_map,i_map)
+    @assert Healpix.conformables(p_map,q_map)
+    @assert Healpix.conformables(p_map,u_map)
+
     p_map.pixels = sqrt.(q_map[:].^2 + u_map[:].^2) ./ i_map[:]
     return nothing
 end
@@ -157,6 +163,8 @@ Output:
 """
 makePolDegreeMap
 
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
 
 """
     function polAngleMap!(
@@ -184,6 +192,9 @@ function polAngleMap!(
     q_map::HealpixMap,
     u_map::HealpixMap
 )
+    @assert Healpix.conformables(ang_map,q_map)
+    @assert Healpix.conformables(ang_map,u_map)
+
     ang_map.pixels = 0.5 .* atan.(u_map[:], q_map[:]) 
     return nothing
 end
@@ -247,3 +258,30 @@ Output:
 - `p_map` an HealpixMap containing observed angle of polarization. 
 """
 makePolAngMap
+
+#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+
+"""
+    differenceAngMaps(
+        a :: HealpixMap,
+        b :: HealpixMap
+    )
+
+Calculate the difference between two maps containing the observed
+polarization angle.
+
+Return an HealpixMap.
+
+Angles MUST be expressed in RADIANS.
+"""
+function differenceAngMaps(
+    a :: HealpixMap,
+    b :: HealpixMap
+)
+    @assert Healpix.conformables(a,b) ["Input maps haven't same shape and ordering."]
+    c = HealpixMap{Float64, RingOrder}(a.resolution.nside)
+    r = rem2pi.(a.pixels.-b.pixels, RoundNearest)
+    c.pixels = mod.(r[:].+π/2, π) .- π/2
+    return c
+end
