@@ -188,3 +188,52 @@ function makeErroredMapIQU(
 
     return (map, hits)
 end
+
+function fill_IQU_IdealMaps!(
+    wheelfunction,
+    map :: PolarizedHealpixMap,
+    cam_ang :: Sl.CameraAngles,
+    signal :: PolarizedHealpixMap,
+    setup :: Setup,
+    hits :: PolarizedHealpixMap,
+    )
+    
+    pixbuf = Array{Int}(undef, 4)
+    weightbuf = Array{Float64}(undef, 4)
+    dirs = Array{Float64}(undef, 1, 2)
+    psi = Array{Float64}(undef, 1)
+    
+    for t in setup.times
+        
+        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
+        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
+        
+        i_value = Healpix.interpolate(signal.i, dirs[1], dirs[2], pixbuf, weightbuf)
+        q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
+        u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
+
+        add2pixel!(map.i, i_value, pixel_index_ideal, hits.i)
+        add2pixel!(map.q, q_value, pixel_index_ideal, hits.q)
+        add2pixel!(map.u, u_value, pixel_index_ideal, hits.u)
+
+    end
+    return nothing
+end
+
+function makeIdealMapIQU(
+    cam_ang :: Sl.CameraAngles,
+    signal :: PolarizedHealpixMap,
+    setup :: PRMaps.Setup
+)
+    map = PolarizedHealpixMap{Float64, RingOrder}(setup.NSIDE)
+    hits = PolarizedHealpixMap{Int32, RingOrder}(setup.NSIDE)
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
+    
+    fill_IQU_IdealMaps!(wheelfunction, map, cam_ang, signal, setup, hits)
+
+    map.i.pixels = map.i.pixels ./ hits.i.pixels
+    map.q.pixels = map.q.pixels ./ hits.q.pixels
+    map.u.pixels = map.u.pixels ./ hits.u.pixels
+
+    return (map, hits)
+end

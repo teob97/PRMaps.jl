@@ -109,11 +109,10 @@ function makePolDegreeMap(
     signal::PolarizedHealpixMap,
     setup::Setup
 )
-    (q_map, u_map) = makePolMap(cam_ang, tel_ang, signal, setup)
-    i_map, _ = makeErroredMap(cam_ang, tel_ang, signal.i, setup)
+    signal_map, _ = makeErroredMapIQU(cam_ang, tel_ang, signal, setup)
     p_map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
     
-    polDegreeMap!(p_map, i_map, q_map, u_map)
+    polDegreeMap!(p_map, signal_map.i, signal_map.q, signal_map.u)
 
     return p_map
 end
@@ -123,11 +122,10 @@ function makePolDegreeMap(
     signal::PolarizedHealpixMap,
     setup::Setup
 )
-    (q_map, u_map) = makePolMap(cam_ang, signal, setup)
-    i_map, _ = makeIdealMap(cam_ang, signal.i, setup)
+    signal_map, _ = makeIdealMapIQU(cam_ang, signal, setup)
     p_map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    
-    polDegreeMap!(p_map, i_map, q_map, u_map)
+
+    polDegreeMap!(p_map, signal_map.i, signal_map.q, signal_map.u)
 
     return p_map
 end
@@ -206,10 +204,10 @@ function makePolAngMap(
     setup :: Setup
     )
 
-    (q_map, u_map) = makePolMap(cam_ang, tel_ang, signal, setup)
+    signal_map, _ = makeErroredMapIQU(cam_ang, tel_ang, signal, setup)
     p_map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
     
-    polAngleMap!(p_map, q_map, u_map)
+    polAngleMap!(p_map, signal_map.q, signal_map.u)
 
     return p_map
 end
@@ -220,10 +218,10 @@ function makePolAngMap(
     setup :: Setup
     )
 
-    (q_map, u_map) = makePolMap(cam_ang, signal, setup)
+    signal_map, _ = makeIdealMapIQU(cam_ang, signal, setup)
     p_map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
     
-    polAngleMap!(p_map, q_map, u_map)
+    polAngleMap!(p_map, signal_map.q, signal_map.u)
 
     return p_map
 end
