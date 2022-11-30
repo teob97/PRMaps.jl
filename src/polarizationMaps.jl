@@ -2,7 +2,7 @@ using Stripeline
 using Healpix
 using PRMaps
 
-export makePolMap, makePolDegreeMap, makePolAngMap
+export makePolDegreeMap, makePolAngMap
 export polAngleMap!, polDegreeMap!
 export differenceAngMaps
 

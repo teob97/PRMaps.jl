@@ -89,6 +89,9 @@ the non idealities to generate the pointing direction. The observed values inste
 calculated taking into account the ideal pointing directions. 
 The result is a map affected by an error due to the non idealities of the system.
 
+Return a tuple `(map, hits)::(Healpix, Healpix)`:
+- `map` contains the obserbed values of signal;
+- `hits` contains for every pixels the count of how many times the pixel is seen.
 """
 function makeErroredMap(
     cam_ang :: Sl.CameraAngles,
@@ -115,6 +118,10 @@ end
     )
 
 Generate a Healpix map using an ideal telescope model.
+
+Return a tuple `(map, hits)::(Healpix, Healpix)`:
+- `map` contains the obserbed values of signal;
+- `hits` contains for every pixels the count of how many times the pixel is seen.
 """
 function makeIdealMap(
     cam_ang :: Sl.CameraAngles,
@@ -170,6 +177,24 @@ function fill_IQU_ErroredMaps!(
     return nothing
 end
 
+
+"""
+    makeErroredMap(
+        cam_ang :: Sl.CameraAngles, 
+        telescope_angles :: Sl.TelescopeAngles,
+        signal :: Healpix.PolarizedHealpixMap,
+        setup :: Setup
+    )
+
+Generate a PolarizedHealpix map (I,Q,U) using a telescope model that takes into account
+the non idealities to generate the pointing direction. The observed values instead are
+calculated taking into account the ideal pointing directions. 
+The result is a map affected by an error due to the non idealities of the system.
+
+Return a tuple `(map, hits)::(PolarizedHealpix, PolarizedHealpix)`:
+- `map` contains the obserbed values of signal;
+- `hits` contains for every pixels the count of how many times the pixel is seen.
+"""
 function makeErroredMapIQU(
     cam_ang :: Sl.CameraAngles,
     tel_ang :: Sl.TelescopeAngles,
@@ -220,6 +245,20 @@ function fill_IQU_IdealMaps!(
     return nothing
 end
 
+
+"""
+    makeIdealMap(
+        cam_ang :: Sl.CameraAngles, 
+        signal :: Healpix.PolarizedHealpixMap,
+        setup :: Setup
+    )
+
+Generate a PolarizedHealpix map (I,Q,U) using an ideal telescope model.
+
+Return a tuple `(map, hits)::(PolarizedHealpix, PolarizedHealpix)`:
+- `map` contains the obserbed values of signal;
+- `hits` contains for every pixels the count of how many times the pixel is seen.
+"""
 function makeIdealMapIQU(
     cam_ang :: Sl.CameraAngles,
     signal :: PolarizedHealpixMap,
