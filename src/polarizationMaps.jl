@@ -41,7 +41,7 @@ in `ang_map`. The degree of polarization is defined as:
 
 sqrt(Q^2 + U^2) / I
 
-Used internally by [makePolAngMap](@ref).
+Used internally by [`makePolAngMap`](@ref).
 
 Input:
 - `p_map::HealpixMap` an empty HealpixMap
@@ -111,13 +111,13 @@ whose camera point towards a direction encoded by
 the CameraAngles struct.
 
 The second flavour, with a TelescopeAngles as input, produce a
-map affected by an error. See [makeErroredMap](@ref)
+map affected by an error. See [`makeErroredMap`](@ref)
 
 Input:
 - `cam_ang :: CameraAngles` encoding the pointing direction of the detector;
 - `tel_ang::Stripeline.TelescopeAngles` encoding the non idealities of the telescope;
 - `signal::Healpix.PolarizedHealpixMap` the signal (Q,U,I) that the telescope are going to observe;
-- `setup::PRMaps.Setup` see [Setup](@ref).
+- `setup::PRMaps.Setup` see [`Setup`](@ref).
 Output:
 - `p_map` an HealpixMap containing observed degree of polarization. 
 """
@@ -138,7 +138,7 @@ in `ang_map`. The angle of polarization is defined as:
 
 0.5 * atan(U, Q)
 
-Used internally by [makePolAngMap](@ref).
+Used internally by [`makePolAngMap`](@ref).
 
 Input:
 - `ang_map::HealpixMap` an empty HealpixMap
@@ -207,13 +207,13 @@ whose camera point towards a direction encoded by
 the CameraAngles struct.
 
 The second flavour, with a TelescopeAngles as input, produce a
-map affected by an error. See [makeErroredMap](@ref)
+map affected by an error. See [`makeErroredMap`](@ref)
 
 Input:
 - `cam_ang :: CameraAngles` encoding the pointing direction of the detector;
 - `tel_ang::Stripeline.TelescopeAngles` encoding the non idealities of the telescope;
 - `signal::Healpix.PolarizedHealpixMap` the signal (Q,U,I) that the telescope are going to observe;
-- `setup::PRMaps.Setup` see [Setup](@ref).
+- `setup::PRMaps.Setup` see [`Setup`](@ref).
 Output:
 - `p_map` an HealpixMap containing observed angle of polarization. 
 """

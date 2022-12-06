@@ -28,9 +28,24 @@ export makeIdealMap, makeErroredMap
 export makeErroredMapIQU, makeIdealMapIQU
 export add2pixel!
 
+"""
+    Setup(
+        τ_s :: Float64,
+        times :: StepRangeLen,
+        NSIDE :: Int32
+    )
+
+Struct containing some useful data.
+
+Arguments:
+
+- `τ_s` : sampling time (defined as 1 / sampling_frequency)
+- `times` : time range (usually 0:τ_s:total_time)
+- `NSIDE` : map resolution
+"""
 Base.@kwdef struct Setup
     τ_s :: Float64 = 0.0
-    times :: StepRangeLen
+    times :: StepRangeLen = 0:0:0
     NSIDE :: Int32 = 0
 end
 
@@ -111,7 +126,7 @@ the non idealities to generate the pointing direction. The observed values inste
 calculated taking into account the ideal pointing directions. 
 The result is a map affected by an error due to the non idealities of the system.
 
-Return a tuple `(map, hits)::(Healpix, Healpix)`:
+Return a tuple `(map, hits)::(HealpixMap, HealpixMap)`:
 - `map` contains the obserbed values of signal;
 - `hits` contains for every pixels the count of how many times the pixel is seen.
 """
@@ -141,7 +156,7 @@ end
 
 Generate a Healpix map using an ideal telescope model.
 
-Return a tuple `(map, hits)::(Healpix, Healpix)`:
+Return a tuple `(map, hits)::(HealpixMap, HealpixMap)`:
 - `map` contains the obserbed values of signal;
 - `hits` contains for every pixels the count of how many times the pixel is seen.
 """
@@ -213,7 +228,7 @@ the non idealities to generate the pointing direction. The observed values inste
 calculated taking into account the ideal pointing directions. 
 The result is a map affected by an error due to the non idealities of the system.
 
-Return a tuple `(map, hits)::(PolarizedHealpix, PolarizedHealpix)`:
+Return a tuple `(map, hits)::(PolarizedHealpixMap, PolarizedHealpixMap)`:
 - `map` contains the obserbed values of signal;
 - `hits` contains for every pixels the count of how many times the pixel is seen.
 """
@@ -277,7 +292,7 @@ end
 
 Generate a PolarizedHealpix map (I,Q,U) using an ideal telescope model.
 
-Return a tuple `(map, hits)::(PolarizedHealpix, PolarizedHealpix)`:
+Return a tuple `(map, hits)::(PolarizedHealpixMap, PolarizedHealpixMap)`:
 - `map` contains the obserbed values of signal;
 - `hits` contains for every pixels the count of how many times the pixel is seen.
 """
