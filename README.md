@@ -1,4 +1,4 @@
-# Pointing Recontruction (Model) Maps
+# Pointing Reconstruction (Model) Maps
 PRMaps.jl is a set of function to generate maps of the observed signal by the [LSPE/Strip](https://lspe.roma1.infn.it/strip.html) telescope given an input map of the entire sky.
 The scanning strategy of the telescope is aviable [here](https://lspestrip.github.io/Stripeline.jl/latest/scanning/). 
 
