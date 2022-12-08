@@ -46,7 +46,6 @@ Arguments:
 Base.@kwdef struct Setup
     τ_s :: Float64 = 0.0
     times :: StepRangeLen = 0:0:0
-    NSIDE :: Int32 = 0
 end
 
 function add2pixel!(map, sky_value, pixel_idx, hits_map)
@@ -137,8 +136,8 @@ function makeErroredMap(
     setup :: Setup
     )
 
-    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = HealpixMap{Int32, RingOrder}(setup.NSIDE)
+    map = HealpixMap{Float64, RingOrder}(signal.resolution.nside)
+    hits = HealpixMap{Int32, RingOrder}(signal.resolution.nside)
     wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
 
     fillMap!(wheelfunction, map, cam_ang, telescope_ang, signal, setup, hits)
@@ -166,8 +165,8 @@ function makeIdealMap(
     setup :: Setup
     )
 
-    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = HealpixMap{Int32, RingOrder}(setup.NSIDE)
+    map = HealpixMap{Float64, RingOrder}(signal.resolution.nside)
+    hits = HealpixMap{Int32, RingOrder}(signal.resolution.nside)
     wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
 
     fillIdealMap!(wheelfunction, map, cam_ang, signal, setup, hits)
@@ -238,8 +237,8 @@ function makeErroredMapIQU(
     signal :: PolarizedHealpixMap,
     setup :: PRMaps.Setup
 )
-    map = PolarizedHealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = PolarizedHealpixMap{Int32, RingOrder}(setup.NSIDE)
+    map = PolarizedHealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
+    hits = PolarizedHealpixMap{Int32, RingOrder}(signal.i.resolution.nside)
     wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
     
     fill_IQU_ErroredMaps!(wheelfunction, map, cam_ang, tel_ang, signal, setup, hits)
@@ -301,8 +300,8 @@ function makeIdealMapIQU(
     signal :: PolarizedHealpixMap,
     setup :: PRMaps.Setup
 )
-    map = PolarizedHealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = PolarizedHealpixMap{Int32, RingOrder}(setup.NSIDE)
+    map = PolarizedHealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
+    hits = PolarizedHealpixMap{Int32, RingOrder}(signal.i.resolution.nside)
     wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
     
     fill_IQU_IdealMaps!(wheelfunction, map, cam_ang, signal, setup, hits)
