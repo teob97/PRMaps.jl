@@ -1,7 +1,7 @@
 name = "PRMaps"
 uuid = "fd40e84c-20b6-49bc-bda0-919ee04f3f0e"
 authors = ["Baratto Matteo <teo.baratto.97@gmail.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"

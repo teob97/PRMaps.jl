@@ -30,23 +30,15 @@ export add2pixel!
 
 """
     Setup(
-        τ_s :: Float64,
-        times :: StepRangeLen,
-        NSIDE :: Int32
+        sampling_freq_Hz :: Float64,
+        total_time_s :: Float64    
     )
 
 Struct containing some useful data.
-
-Arguments:
-
-- `τ_s` : sampling time (defined as 1 / sampling_frequency)
-- `times` : time range (usually 0:τ_s:total_time)
-- `NSIDE` : map resolution
 """
 Base.@kwdef struct Setup
-    τ_s :: Float64 = 0.0
-    times :: StepRangeLen = 0:0:0
-    NSIDE :: Int32 = 0
+    sampling_freq_Hz :: Float64 = 0.0
+    total_time_s :: Float64 = 0.0
 end
 
 function add2pixel!(map, sky_value, pixel_idx, hits_map)
@@ -69,8 +61,9 @@ function fillMap!(
     weightbuf = Array{Float64}(undef, 4)
     dirs = Array{Float64}(undef, 1, 2)
     psi = Array{Float64}(undef, 1)
-    
-    for t in setup.times
+    times = 0 : 1.0/setup.sampling_freq_Hz : setup.total_time_s
+
+    for t in times
         
         Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
         pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
@@ -98,8 +91,9 @@ function fillIdealMap!(
     weightbuf = Array{Float64}(undef, 4)
     dirs = Array{Float64}(undef, 1, 2)
     psi = Array{Float64}(undef, 1)
+    times = 0 : 1.0/setup.sampling_freq_Hz : setup.total_time_s
     
-    for t in setup.times
+    for t in times
         
         Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
         
@@ -137,9 +131,9 @@ function makeErroredMap(
     setup :: Setup
     )
 
-    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = HealpixMap{Int32, RingOrder}(setup.NSIDE)
-    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
+    map = HealpixMap{Float64, RingOrder}(signal.resolution.nside)
+    hits = HealpixMap{Int32, RingOrder}(signal.resolution.nside)
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, 1.0))
 
     fillMap!(wheelfunction, map, cam_ang, telescope_ang, signal, setup, hits)
 
@@ -166,9 +160,9 @@ function makeIdealMap(
     setup :: Setup
     )
 
-    map = HealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = HealpixMap{Int32, RingOrder}(setup.NSIDE)
-    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
+    map = HealpixMap{Float64, RingOrder}(signal.resolution.nside)
+    hits = HealpixMap{Int32, RingOrder}(signal.resolution.nside)
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, 1.0))
 
     fillIdealMap!(wheelfunction, map, cam_ang, signal, setup, hits)
 
@@ -194,8 +188,9 @@ function fill_IQU_ErroredMaps!(
     weightbuf = Array{Float64}(undef, 4)
     dirs = Array{Float64}(undef, 1, 2)
     psi = Array{Float64}(undef, 1)
+    times = 0 : 1.0/setup.sampling_freq_Hz : setup.total_time_s
     
-    for t in setup.times
+    for t in times
         
         Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
         pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
@@ -238,9 +233,9 @@ function makeErroredMapIQU(
     signal :: PolarizedHealpixMap,
     setup :: PRMaps.Setup
 )
-    map = PolarizedHealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = PolarizedHealpixMap{Int32, RingOrder}(setup.NSIDE)
-    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
+    map = PolarizedHealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
+    hits = PolarizedHealpixMap{Int32, RingOrder}(signal.i.resolution.nside)
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, 1.0))
     
     fill_IQU_ErroredMaps!(wheelfunction, map, cam_ang, tel_ang, signal, setup, hits)
 
@@ -264,8 +259,9 @@ function fill_IQU_IdealMaps!(
     weightbuf = Array{Float64}(undef, 4)
     dirs = Array{Float64}(undef, 1, 2)
     psi = Array{Float64}(undef, 1)
+    times = 0 : 1.0/setup.sampling_freq_Hz : setup.total_time_s
     
-    for t in setup.times
+    for t in times
         
         Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
         pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
@@ -301,9 +297,9 @@ function makeIdealMapIQU(
     signal :: PolarizedHealpixMap,
     setup :: PRMaps.Setup
 )
-    map = PolarizedHealpixMap{Float64, RingOrder}(setup.NSIDE)
-    hits = PolarizedHealpixMap{Int32, RingOrder}(setup.NSIDE)
-    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, setup.τ_s*60.))
+    map = PolarizedHealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
+    hits = PolarizedHealpixMap{Int32, RingOrder}(signal.i.resolution.nside)
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, 1.0))
     
     fill_IQU_IdealMaps!(wheelfunction, map, cam_ang, signal, setup, hits)
 
