@@ -30,17 +30,11 @@ export add2pixel!
 
 """
     Setup(
-        τ_s :: Float64,
-        times :: StepRangeLen,
+        sampling_freq_Hz :: Float64,
+        total_time_s :: Float64    
     )
 
 Struct containing some useful data.
-
-Arguments:
-
-- `τ_s` : sampling time (defined as 1 / sampling_frequency)
-- `times` : time range (usually 0:τ_s:total_time)
-- `NSIDE` : map resolution
 """
 Base.@kwdef struct Setup
     sampling_freq_Hz :: Float64 = 0.0
