@@ -26,6 +26,7 @@ using Healpix
 export Setup
 export makeIdealMap, makeErroredMap
 export makeErroredMapIQU, makeIdealMapIQU
+export makeErroredMapsIQU, makeIdealMapsIQU
 export add2pixel!
 
 """
@@ -174,7 +175,7 @@ end
 # ---------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------
 
-function fill_IQU_ErroredMaps!(
+function fill_IQU_ErroredMap!(
     wheelfunction,
     map :: PolarizedHealpixMap,
     cam_ang :: Sl.CameraAngles,
@@ -237,7 +238,7 @@ function makeErroredMapIQU(
     hits = PolarizedHealpixMap{Int32, RingOrder}(signal.i.resolution.nside)
     wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, 1.0))
     
-    fill_IQU_ErroredMaps!(wheelfunction, map, cam_ang, tel_ang, signal, setup, hits)
+    fill_IQU_ErroredMap!(wheelfunction, map, cam_ang, tel_ang, signal, setup, hits)
 
     map.i.pixels = map.i.pixels ./ hits.i.pixels
     map.q.pixels = map.q.pixels ./ hits.q.pixels
@@ -246,7 +247,7 @@ function makeErroredMapIQU(
     return (map, hits)
 end
 
-function fill_IQU_IdealMaps!(
+function fill_IQU_IdealMap!(
     wheelfunction,
     map :: PolarizedHealpixMap,
     cam_ang :: Sl.CameraAngles,
@@ -301,11 +302,139 @@ function makeIdealMapIQU(
     hits = PolarizedHealpixMap{Int32, RingOrder}(signal.i.resolution.nside)
     wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, 1.0))
     
-    fill_IQU_IdealMaps!(wheelfunction, map, cam_ang, signal, setup, hits)
+    fill_IQU_IdealMap!(wheelfunction, map, cam_ang, signal, setup, hits)
 
     map.i.pixels = map.i.pixels ./ hits.i.pixels
     map.q.pixels = map.q.pixels ./ hits.q.pixels
     map.u.pixels = map.u.pixels ./ hits.u.pixels
 
     return (map, hits)
+end
+
+#----------------------------------------------------------------------------------------
+# Function to create a collection of maps, this case is useful when you have to simulate 
+# differents frequencies. The pointing is always the same but there are differents signals.
+#----------------------------------------------------------------------------------------
+
+function fill_IQU_IdealMaps!(
+    wheelfunction,
+    maps :: PolarizedHealpixMap[],
+    cam_ang :: Sl.CameraAngles,
+    signals :: PolarizedHealpixMap[],
+    setup :: Setup,
+    hits :: PolarizedHealpixMap,
+    )
+    
+    pixbuf = Array{Int}(undef, 4)
+    weightbuf = Array{Float64}(undef, 4)
+    dirs = Array{Float64}(undef, 1, 2)
+    psi = Array{Float64}(undef, 1)
+    times = 0 : 1.0/setup.sampling_freq_Hz : setup.total_time_s
+    map = PolarizedHealpixMap{Float64, RingOrder}(hits.resolution.nside)
+    
+    for t in times
+        
+        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
+        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
+        
+        for signal in signals
+
+            i_value = Healpix.interpolate(signal.i, dirs[1], dirs[2], pixbuf, weightbuf)
+            q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
+            u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
+
+            add2pixel!(map.i, i_value, pixel_index_ideal, hits.i)
+            add2pixel!(map.q, q_value, pixel_index_ideal, hits.q)
+            add2pixel!(map.u, u_value, pixel_index_ideal, hits.u)
+
+            push!(maps, map)
+        end
+
+    end
+    return nothing
+end
+
+function makeIdealMapsIQU(
+    cam_ang :: Sl.CameraAngles,
+    signals :: Vector{Healpix.PolarizedHealpixMap},
+    setup :: Setup
+)
+    maps = PolarizedHealpixMap[]
+    hits = PolarizedHealpixMap{Int32, RingOrder}(signal.i.resolution.nside)
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, 1.0))
+
+    fill_IQU_IdealMaps!(wheelfunction, maps, cam_ang, signals, setup, hits)
+
+    for m in maps
+        m.i.pixels = m.i.pixels ./ hits.i.pixels
+        m.q.pixels = m.q.pixels ./ hits.q.pixels
+        m.u.pixels = m.u.pixels ./ hits.u.pixels
+    end
+
+    return maps
+    
+end
+
+
+
+
+function fill_IQU_ErroredMaps!(
+    wheelfunction,
+    maps :: PolarizedHealpixMap[],
+    cam_ang :: Sl.CameraAngles,
+    signals :: PolarizedHealpixMap[],
+    setup :: Setup,
+    hits :: PolarizedHealpixMap,
+    )
+    
+    pixbuf = Array{Int}(undef, 4)
+    weightbuf = Array{Float64}(undef, 4)
+    dirs = Array{Float64}(undef, 1, 2)
+    psi = Array{Float64}(undef, 1)
+    times = 0 : 1.0/setup.sampling_freq_Hz : setup.total_time_s
+    map = PolarizedHealpixMap{Float64, RingOrder}(hits.resolution.nside)
+    
+    for t in times
+        
+        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
+        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
+
+        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi; telescope_ang = telescope_ang)
+        
+        for signal in signals
+
+            i_value = Healpix.interpolate(signal.i, dirs[1], dirs[2], pixbuf, weightbuf)
+            q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
+            u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
+
+            add2pixel!(map.i, i_value, pixel_index_ideal, hits.i)
+            add2pixel!(map.q, q_value, pixel_index_ideal, hits.q)
+            add2pixel!(map.u, u_value, pixel_index_ideal, hits.u)
+
+            push!(maps, map)
+        end
+
+    end
+    return nothing
+end
+
+function makeErroredMapsIQU(
+    cam_ang :: Sl.CameraAngles,
+    signals :: Vector{Healpix.PolarizedHealpixMap},
+    setup :: Setup
+)
+    maps = PolarizedHealpixMap[]
+    hits = PolarizedHealpixMap{Int32, RingOrder}(signal.i.resolution.nside)
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, 1.0))
+
+    fill_IQU_ErroredMaps!(wheelfunction, maps, cam_ang, signals, setup, hits)
+
+    for m in maps
+        m.i.pixels = m.i.pixels ./ hits.i.pixels
+        m.q.pixels = m.q.pixels ./ hits.q.pixels
+        m.u.pixels = m.u.pixels ./ hits.u.pixels
+    end
+
+    return maps
+    
 end
