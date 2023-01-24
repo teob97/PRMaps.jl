@@ -25,7 +25,6 @@ import Stripeline as Sl
 using Healpix
 
 export makeErroredMapIQU, makeIdealMapIQU
-export makeErroredMapsIQU, makeIdealMapsIQU
 
 function fill_IQU_ErroredMap!(
     wheelfunction,
@@ -163,19 +162,19 @@ function makeIdealMapIQU(
     return (map, hits)
 end
 
-#----------------------------------------------------------------------------------------
-# Function to create a collection of maps, this case is useful when you have to simulate 
-# differents frequencies. The pointing is always the same but there are differents signals.
-#----------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
+# -------------- Functions flavour that accept DateTime object --------------------
+# ---------------------------------------------------------------------------------
 
-
-function fill_IQU_IdealMaps!(
+function fill_IQU_ErroredMap!(
     wheelfunction,
-    maps,
+    map :: PolarizedHealpixMap,
     cam_ang :: Sl.CameraAngles,
-    signals :: Vector{Healpix.PolarizedHealpixMap},
+    telescope_ang :: Sl.TelescopeAngles,
+    signal :: PolarizedHealpixMap,
     setup :: Setup,
-    hits :: HealpixMap,
+    hits :: PolarizedHealpixMap,
+    t_start :: Dates.DateTime
     )
     
     pixbuf = Array{Int}(undef, 4)
@@ -186,55 +185,70 @@ function fill_IQU_IdealMaps!(
     
     for t in times
         
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
-        pixel_index_ideal = ang2pix(hits, dirs[1], dirs[2])
+        Sl.genpointings!(wheelfunction, cam_ang, t, t_start, dirs, psi)
+        pixel_index_ideal = ang2pix(signal, dirs[1], dirs[2])
+        
+        Sl.genpointings!(wheelfunction, cam_ang, t, t_start, dirs, psi; telescope_ang = telescope_ang)
 
-        for (indx,signal) in enumerate(signals)
+        i_value = Healpix.interpolate(signal.i, dirs[1], dirs[2], pixbuf, weightbuf)
+        q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
+        u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
 
-            i_value = Healpix.interpolate(signal.i, dirs[1], dirs[2], pixbuf, weightbuf)
-            q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
-            u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
+        add2pixel!(map.i, i_value, pixel_index_ideal, hits.i)
+        add2pixel!(map.q, q_value, pixel_index_ideal, hits.q)
+        add2pixel!(map.u, u_value, pixel_index_ideal, hits.u)
 
-            maps[indx].i[pixel_index_ideal] += i_value
-            maps[indx].q[pixel_index_ideal] += q_value
-            maps[indx].u[pixel_index_ideal] += u_value
-        end
-
-        hits[pixel_index_ideal] += 1
     end
     return nothing
 end
 
-function makeIdealMapsIQU(
-    cam_ang :: Sl.CameraAngles,
-    signals :: Vector{Healpix.PolarizedHealpixMap},
-    setup :: Setup
-)
-    maps = [ PolarizedHealpixMap{Float64, RingOrder}(signals[1].i.resolution.nside) for i in axes(signals,1)]
-    hits = HealpixMap{Int64, RingOrder}(signals[1].i.resolution.nside)
-    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, 1.0))
 
-    fill_IQU_IdealMaps!(wheelfunction, maps, cam_ang, signals, setup, hits)
-    
-    for indx in axes(maps,1)
-        maps[indx].i.pixels ./= hits.pixels
-        maps[indx].q.pixels ./= hits.pixels
-        maps[indx].u.pixels ./= hits.pixels
-    end
+"""
+    makeErroredMap(
+        cam_ang :: Sl.CameraAngles, 
+        telescope_angles :: Sl.TelescopeAngles,
+        signal :: Healpix.PolarizedHealpixMap,
+        setup :: Setup,
+        t_start :: Dates.DateTime
+    )
 
-    return (maps, hits)
-    
-end
+Generate a PolarizedHealpix map (I,Q,U) using a telescope model that takes into account
+the non idealities to generate the pointing direction. The observed values instead are
+calculated taking into account the ideal pointing directions. 
+The result is a map affected by an error due to the non idealities of the system.
 
-
-function fill_IQU_ErroredMaps!(
-    wheelfunction,
-    maps,
+Return a tuple `(map, hits)::(PolarizedHealpixMap, PolarizedHealpixMap)`:
+- `map` contains the obserbed values of signal;
+- `hits` contains for every pixels the count of how many times the pixel is seen.
+"""
+function makeErroredMapIQU(
     cam_ang :: Sl.CameraAngles,
     tel_ang :: Sl.TelescopeAngles,
-    signals :: Vector{Healpix.PolarizedHealpixMap},
+    signal :: PolarizedHealpixMap,
+    setup :: PRMaps.Setup,
+    t_start :: Dates.DateTime
+)
+    map = PolarizedHealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
+    hits = PolarizedHealpixMap{Int32, RingOrder}(signal.i.resolution.nside)
+    wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, 1.0))
+    
+    fill_IQU_ErroredMap!(wheelfunction, map, cam_ang, tel_ang, signal, setup, hits, t_start)
+
+    map.i.pixels = map.i.pixels ./ hits.i.pixels
+    map.q.pixels = map.q.pixels ./ hits.q.pixels
+    map.u.pixels = map.u.pixels ./ hits.u.pixels
+
+    return (map, hits)
+end
+
+function fill_IQU_IdealMap!(
+    wheelfunction,
+    map :: PolarizedHealpixMap,
+    cam_ang :: Sl.CameraAngles,
+    signal :: PolarizedHealpixMap,
     setup :: Setup,
-    hits :: HealpixMap,
+    hits :: PolarizedHealpixMap,
+    t_start :: Dates.DateTime
     )
     
     pixbuf = Array{Int}(undef, 4)
@@ -245,46 +259,51 @@ function fill_IQU_ErroredMaps!(
     
     for t in times
         
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi)
+        Sl.genpointings!(wheelfunction, cam_ang, t, t_start, dirs, psi)
         pixel_index_ideal = ang2pix(hits, dirs[1], dirs[2])
-
-        Sl.genpointings!(wheelfunction, cam_ang, t, dirs, psi; telescope_ang = tel_ang)
         
-        for (indx,signal) in enumerate(signals)
+        i_value = Healpix.interpolate(signal.i, dirs[1], dirs[2], pixbuf, weightbuf)
+        q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
+        u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
 
-            i_value = Healpix.interpolate(signal.i, dirs[1], dirs[2], pixbuf, weightbuf)
-            q_value = Healpix.interpolate(signal.q, dirs[1], dirs[2], pixbuf, weightbuf)
-            u_value = Healpix.interpolate(signal.u, dirs[1], dirs[2], pixbuf, weightbuf)
-
-            maps[indx].i[pixel_index_ideal] += i_value
-            maps[indx].q[pixel_index_ideal] += q_value
-            maps[indx].u[pixel_index_ideal] += u_value
-        end
-
-        hits[pixel_index_ideal] += 1
+        add2pixel!(map.i, i_value, pixel_index_ideal, hits.i)
+        add2pixel!(map.q, q_value, pixel_index_ideal, hits.q)
+        add2pixel!(map.u, u_value, pixel_index_ideal, hits.u)
 
     end
     return nothing
 end
 
-function makeErroredMapsIQU(
+
+"""
+    makeIdealMap(
+        cam_ang :: Sl.CameraAngles, 
+        signal :: Healpix.PolarizedHealpixMap,
+        setup :: Setup,
+        t_start :: Dates.DateTime
+    )
+
+Generate a PolarizedHealpix map (I,Q,U) using an ideal telescope model.
+
+Return a tuple `(map, hits)::(PolarizedHealpixMap, PolarizedHealpixMap)`:
+- `map` contains the obserbed values of signal;
+- `hits` contains for every pixels the count of how many times the pixel is seen.
+"""
+function makeIdealMapIQU(
     cam_ang :: Sl.CameraAngles,
-    tel_ang :: Sl.TelescopeAngles,
-    signals :: Vector{Healpix.PolarizedHealpixMap},
-    setup :: Setup
+    signal :: PolarizedHealpixMap,
+    setup :: PRMaps.Setup,
+    t_start :: Dates.DateTime
 )
-    maps = [ PolarizedHealpixMap{Float64, RingOrder}(signals[1].i.resolution.nside) for i in axes(signals,1)]
-    hits = HealpixMap{Int32, RingOrder}(signals[1].i.resolution.nside)
+    map = PolarizedHealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
+    hits = PolarizedHealpixMap{Int64, RingOrder}(signal.i.resolution.nside)
     wheelfunction = x -> (0.0, deg2rad(20.0), Sl.timetorotang(x, 1.0))
-
-    fill_IQU_ErroredMaps!(wheelfunction, maps, cam_ang, tel_ang, signals, setup, hits)
-
-    for m in maps
-        m.i.pixels ./= hits.pixels
-        m.q.pixels ./= hits.pixels
-        m.u.pixels ./= hits.pixels
-    end
-
-    return (maps, hits)
     
+    fill_IQU_IdealMap!(wheelfunction, map, cam_ang, signal, setup, hits, t_start)
+
+    map.i.pixels ./= hits.i.pixels
+    map.q.pixels ./= hits.q.pixels
+    map.u.pixels ./= hits.u.pixels
+
+    return (map, hits)
 end
