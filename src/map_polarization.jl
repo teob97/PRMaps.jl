@@ -24,6 +24,8 @@ using Stripeline
 using Healpix
 using PRMaps
 
+import Dates
+
 export makePolDegreeMap, makePolAngMap
 export polAngleMap!, polDegreeMap!
 export differenceAngMaps
@@ -92,37 +94,6 @@ function makePolDegreeMap(
     return p_map
 end
 
-"""
-    makePolDegreeMap(
-        cam_ang::Stripeline.CameraAngles,
-        signal::Healpix.PolarizedHealpixMap,
-        setup::PRMaps.Setup
-    )
-
-    makePolDegreeMap(
-        cam_ang::Stripeline.CameraAngles,
-        tel_ang::Stripeline.TelescopeAngles,
-        signal::Healpix.PolarizedHealpixMap,
-        setup::PRMaps.Setup
-    )
-
-Return the polarization degree map of the sky observed by a telescope 
-whose camera point towards a direction encoded by
-the CameraAngles struct.
-
-The second flavour, with a TelescopeAngles as input, produce a
-map affected by an error. See [`makeErroredMap`](@ref)
-
-Input:
-- `cam_ang :: CameraAngles` encoding the pointing direction of the detector;
-- `tel_ang::Stripeline.TelescopeAngles` encoding the non idealities of the telescope;
-- `signal::Healpix.PolarizedHealpixMap` the signal (Q,U,I) that the telescope are going to observe;
-- `setup::PRMaps.Setup` see [`Setup`](@ref).
-Output:
-- `p_map` an HealpixMap containing observed degree of polarization. 
-"""
-makePolDegreeMap
-
 #--------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------
 
@@ -188,37 +159,7 @@ function makePolAngMap(
     return p_map
 end
 
-"""
-    makePolAngMap(
-        cam_ang::Stripeline.CameraAngles,
-        signal::Healpix.PolarizedHealpixMap,
-        setup::PRMaps.Setup
-    )
-
-    makePolAngMap(
-        cam_ang::Stripeline.CameraAngles,
-        tel_ang::Stripeline.TelescopeAngles,
-        signal::Healpix.PolarizedHealpixMap,
-        setup::PRMaps.Setup
-    )
-
-Return the polarization angle map of the sky observed by a telescope 
-whose camera point towards a direction encoded by
-the CameraAngles struct.
-
-The second flavour, with a TelescopeAngles as input, produce a
-map affected by an error. See [`makeErroredMap`](@ref)
-
-Input:
-- `cam_ang :: CameraAngles` encoding the pointing direction of the detector;
-- `tel_ang::Stripeline.TelescopeAngles` encoding the non idealities of the telescope;
-- `signal::Healpix.PolarizedHealpixMap` the signal (Q,U,I) that the telescope are going to observe;
-- `setup::PRMaps.Setup` see [`Setup`](@ref).
-Output:
-- `p_map` an HealpixMap containing observed angle of polarization. 
-"""
-makePolAngMap
-
+#--------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------
 
@@ -245,3 +186,165 @@ function differenceAngMaps(
     c.pixels = mod.(r[:].+π/2, π) .- π/2
     return c
 end
+
+# ---------------------------------------------------------------------------------
+# -------------- Functions flavour that accept DateTime object --------------------
+# ---------------------------------------------------------------------------------
+
+function makePolDegreeMap(
+    cam_ang::CameraAngles,
+    tel_ang::TelescopeAngles,
+    signal::PolarizedHealpixMap,
+    setup::Setup,
+    t_start :: Dates.DateTime
+)
+    signal_map, _ = makeErroredMapIQU(cam_ang, tel_ang, signal, setup, t_start)
+    p_map = HealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
+    
+    polDegreeMap!(p_map, signal_map.i, signal_map.q, signal_map.u)
+
+    return p_map
+end
+
+function makePolDegreeMap(
+    cam_ang::CameraAngles,
+    signal::PolarizedHealpixMap,
+    setup::Setup,
+    t_start :: Dates.DateTime
+)
+    signal_map, _ = makeIdealMapIQU(cam_ang, signal, setup, t_start)
+    p_map = HealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
+
+    polDegreeMap!(p_map, signal_map.i, signal_map.q, signal_map.u)
+
+    return p_map
+end
+
+function makePolAngMap(
+    cam_ang :: Sl.CameraAngles,
+    tel_ang :: Sl.TelescopeAngles,
+    signal :: PolarizedHealpixMap,
+    setup :: Setup,
+    t_start :: Dates.DateTime
+    )
+
+    signal_map, _ = makeErroredMapIQU(cam_ang, tel_ang, signal, setup, t_start)
+    p_map = HealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
+    
+    polAngleMap!(p_map, signal_map.q, signal_map.u)
+
+    return p_map
+end
+
+function makePolAngMap(
+    cam_ang :: Sl.CameraAngles,
+    signal :: PolarizedHealpixMap,
+    setup :: Setup,
+    t_start :: Dates.DateTime
+    )
+
+    signal_map, _ = makeIdealMapIQU(cam_ang, signal, setup, t_start)
+    p_map = HealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
+    
+    polAngleMap!(p_map, signal_map.q, signal_map.u)
+
+    return p_map
+end
+
+# --------------------------------------------------------------------
+# documentation
+# --------------------------------------------------------------------
+
+"""
+    makePolDegreeMap(
+        cam_ang::Stripeline.CameraAngles,
+        signal::Healpix.PolarizedHealpixMap,
+        setup::PRMaps.Setup
+    )
+
+    makePolDegreeMap(
+        cam_ang::Stripeline.CameraAngles,
+        signal::Healpix.PolarizedHealpixMap,
+        setup::PRMaps.Setup,
+        t_start::Dates.DateTime
+    )
+
+    makePolDegreeMap(
+        cam_ang::Stripeline.CameraAngles,
+        tel_ang::Stripeline.TelescopeAngles,
+        signal::Healpix.PolarizedHealpixMap,
+        setup::PRMaps.Setup
+    )
+
+    makePolDegreeMap(
+        cam_ang::Stripeline.CameraAngles,
+        tel_ang::Stripeline.TelescopeAngles,
+        signal::Healpix.PolarizedHealpixMap,
+        setup::PRMaps.Setup,
+        t_start::Dates.DateTime
+    )
+
+Return the polarization degree map of the sky observed by a telescope 
+whose camera point towards a direction encoded by
+the CameraAngles struct.
+
+The second flavour, with a TelescopeAngles as input, produce a
+map affected by an error. See [`makeErroredMap`](@ref)
+
+Input:
+- `cam_ang :: CameraAngles` encoding the pointing direction of the detector;
+- `tel_ang::Stripeline.TelescopeAngles` encoding the non idealities of the telescope;
+- `signal::Healpix.PolarizedHealpixMap` the signal (Q,U,I) that the telescope are going to observe;
+- `setup::PRMaps.Setup` see [`Setup`](@ref);
+- `t_start::Dates.DateTime` allows to set an initial date for the simulation.
+Output:
+- `p_map` an HealpixMap containing observed degree of polarization. 
+"""
+makePolDegreeMap
+
+"""
+    makePolAngMap(
+        cam_ang::Stripeline.CameraAngles,
+        signal::Healpix.PolarizedHealpixMap,
+        setup::PRMaps.Setup
+    )
+
+    makePolAngMap(
+        cam_ang::Stripeline.CameraAngles,
+        signal::Healpix.PolarizedHealpixMap,
+        setup::PRMaps.Setup,
+        t_start::Dates.DateTime
+    )
+
+    makePolAngMap(
+        cam_ang::Stripeline.CameraAngles,
+        tel_ang::Stripeline.TelescopeAngles,
+        signal::Healpix.PolarizedHealpixMap,
+        setup::PRMaps.Setup
+    )
+
+    makePolAngMap(
+        cam_ang::Stripeline.CameraAngles,
+        tel_ang::Stripeline.TelescopeAngles,
+        signal::Healpix.PolarizedHealpixMap,
+        setup::PRMaps.Setup,
+        t_start::Dates.DateTime
+    )
+
+Return the polarization angle map of the sky observed by a telescope 
+whose camera point towards a direction encoded by
+the CameraAngles struct.
+
+The second flavour, with a TelescopeAngles as input, produce a
+map affected by an error. See [`makeErroredMap`](@ref)
+
+Input:
+- `cam_ang :: CameraAngles` encoding the pointing direction of the detector;
+- `tel_ang::Stripeline.TelescopeAngles` encoding the non idealities of the telescope;
+- `signal::Healpix.PolarizedHealpixMap` the signal (Q,U,I) that the telescope are going to observe;
+- `setup::PRMaps.Setup` see [`Setup`](@ref).
+- `t_start::Dates.DateTime` allows to set an initial date for the simulation.
+Output:
+- `p_map` an HealpixMap containing observed angle of polarization. 
+"""
+makePolAngMap
