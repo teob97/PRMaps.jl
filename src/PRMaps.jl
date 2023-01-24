@@ -25,5 +25,6 @@ module PRMaps
 include("map_single.jl")
 include("map_iqu.jl")
 include("map_polarization.jl")
+include("map_collection.jl")
 
 end # module PrmMaps
