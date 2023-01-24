@@ -24,6 +24,8 @@ using Stripeline
 using Healpix
 using PRMaps
 
+import Dates
+
 export makePolDegreeMap, makePolAngMap
 export polAngleMap!, polDegreeMap!
 export differenceAngMaps
