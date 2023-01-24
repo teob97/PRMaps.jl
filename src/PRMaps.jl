@@ -22,7 +22,8 @@
 
 module PRMaps
 
-include("pointingMaps.jl")
-include("polarizationMaps.jl")
+include("map_single.jl")
+include("map_iqu.jl")
+include("map_polarization.jl")
 
 end # module PrmMaps
