@@ -25,10 +25,10 @@ import Dates
 using Healpix
 import AngleBetweenVectors
 
-export accuracy
-
+export pointing_error_arcmin
 """
-    accuracy(
+    pointing_error_arcmin
+    (
         cam_ang :: Sl.CameraAngles,
         tel_ang :: Sl.TelescopeAngles,
         setup :: PRMaps.Setup,
@@ -38,7 +38,7 @@ export accuracy
 Compute the mean difference between the ideal poining direction and the errored direction.
 The rerun value is in ARC_MIN.
 """
-function accuracy(
+function pointing_error_arcmin(
     cam_ang :: Sl.CameraAngles,
     tel_ang :: Sl.TelescopeAngles,
     setup :: PRMaps.Setup,
