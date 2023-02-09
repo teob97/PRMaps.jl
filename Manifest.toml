@@ -2,7 +2,7 @@
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "93bb8fa4e0ce00f73e5af24b4ede8339330587db"
+project_hash = "3f1c327b060bdc912d64c7d37b1b68bf55da9741"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -13,6 +13,12 @@ version = "0.0.1"
 git-tree-sha1 = "52b3b436f8f73133d7bc3a6c71ee7ed6ab2ab754"
 uuid = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
 version = "0.4.3"
+
+[[deps.AngleBetweenVectors]]
+deps = ["LinearAlgebra", "Test"]
+git-tree-sha1 = "7f45b5788f4800959a352b5e2c5fdebacf09627c"
+uuid = "ec570357-d46e-52ed-9726-18773498274d"
+version = "0.3.0"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"

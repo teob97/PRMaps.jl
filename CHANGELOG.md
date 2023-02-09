@@ -1,5 +1,8 @@
 # HEAD
 
+# Version 0.5.0
+- Added new function to compute pointing error and modified polarization map result [#9](https://github.com/teob97/PRMaps.jl/pull/9)
+
 # Version 0.4.0
 - Added new functions flavor that allows to use a DateTime input [#8](https://github.com/teob97/PRMaps.jl/pull/8)
 

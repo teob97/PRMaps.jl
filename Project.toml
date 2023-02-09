@@ -1,9 +1,10 @@
 name = "PRMaps"
 uuid = "fd40e84c-20b6-49bc-bda0-919ee04f3f0e"
 authors = ["Baratto Matteo <teo.baratto.97@gmail.com>"]
-version = "0.4.0"
+version = "0.5.0"
 
 [deps]
+AngleBetweenVectors = "ec570357-d46e-52ed-9726-18773498274d"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterTools = "35a29f4d-8980-5a13-9543-d66fff28ecb8"
