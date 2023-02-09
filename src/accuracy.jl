@@ -23,7 +23,7 @@
 import Stripeline as Sl
 import Dates
 using Healpix
-import AngleBetweenVectors: angle
+import AngleBetweenVectors
 
 export accuracy
 
