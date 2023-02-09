@@ -25,6 +25,7 @@ import Dates
 using Healpix
 import AngleBetweenVectors: angle
 
+export accuracy
 
 """
     accuracy(
@@ -35,6 +36,7 @@ import AngleBetweenVectors: angle
     )
 
 Compute the mean difference between the ideal poining direction and the errored direction.
+The rerun value is in ARC_MIN.
 """
 function accuracy(
     cam_ang :: Sl.CameraAngles,
