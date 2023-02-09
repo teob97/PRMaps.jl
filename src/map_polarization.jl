@@ -38,10 +38,10 @@ export differenceAngMaps
         u_map::HealpixMap
     )
 
-This function calculate the polarization degree map and save it
+This function calculate the polarization degree (not normalized) map and save it
 in `ang_map`. The degree of polarization is defined as:
 
-sqrt(Q^2 + U^2) / I
+sqrt(Q^2 + U^2)
 
 Used internally by [`makePolAngMap`](@ref).
 
@@ -55,15 +55,13 @@ Output:
 """
 function polDegreeMap!(
     p_map::HealpixMap,
-    i_map::HealpixMap,
     q_map::HealpixMap,
     u_map::HealpixMap
 )
-    @assert Healpix.conformables(p_map,i_map)
     @assert Healpix.conformables(p_map,q_map)
     @assert Healpix.conformables(p_map,u_map)
 
-    p_map.pixels = sqrt.(q_map[:].^2 + u_map[:].^2) ./ i_map[:]
+    p_map.pixels = sqrt.(q_map[:].^2 + u_map[:].^2)
     return nothing
 end
 
@@ -76,7 +74,7 @@ function makePolDegreeMap(
     signal_map, _ = makeErroredMapIQU(cam_ang, tel_ang, signal, setup)
     p_map = HealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
     
-    polDegreeMap!(p_map, signal_map.i, signal_map.q, signal_map.u)
+    polDegreeMap!(p_map, signal_map.q, signal_map.u)
 
     return p_map
 end
@@ -89,7 +87,7 @@ function makePolDegreeMap(
     signal_map, _ = makeIdealMapIQU(cam_ang, signal, setup)
     p_map = HealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
 
-    polDegreeMap!(p_map, signal_map.i, signal_map.q, signal_map.u)
+    polDegreeMap!(p_map, signal_map.q, signal_map.u)
 
     return p_map
 end
@@ -201,7 +199,7 @@ function makePolDegreeMap(
     signal_map, _ = makeErroredMapIQU(cam_ang, tel_ang, signal, setup, t_start)
     p_map = HealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
     
-    polDegreeMap!(p_map, signal_map.i, signal_map.q, signal_map.u)
+    polDegreeMap!(p_map, signal_map.q, signal_map.u)
 
     return p_map
 end
@@ -215,7 +213,7 @@ function makePolDegreeMap(
     signal_map, _ = makeIdealMapIQU(cam_ang, signal, setup, t_start)
     p_map = HealpixMap{Float64, RingOrder}(signal.i.resolution.nside)
 
-    polDegreeMap!(p_map, signal_map.i, signal_map.q, signal_map.u)
+    polDegreeMap!(p_map, signal_map.q, signal_map.u)
 
     return p_map
 end
