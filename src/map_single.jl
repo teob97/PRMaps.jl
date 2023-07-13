@@ -37,6 +37,7 @@ export add2pixel!
 Struct containing some useful data.
 """
 Base.@kwdef struct Setup
+    elevation_ang_rad = 20.0
     sampling_freq_Hz :: Float64 = 0.0
     total_time_s :: Float64 = 0.0
 end
